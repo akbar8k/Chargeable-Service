@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DBS Product & Service Catalogue — POC 1.1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: hsl(230,20%,97%); --fg: hsl(230,20%,10%);
+  --card: hsl(0,0%,100%); --primary: hsl(252,65%,38%); --primary-fg: hsl(0,0%,100%);
+  --muted: hsl(230,18%,94%); --muted-fg: hsl(225,14%,48%);
+  --accent: hsl(28,90%,55%); --accent-fg: hsl(0,0%,100%);
+  --destructive: hsl(0,72%,51%);
+  --border: hsl(225,20%,88%);
+  --success: hsl(145,50%,38%); --success-fg: hsl(0,0%,100%);
+  --warning: hsl(38,92%,50%); --warning-fg: hsl(0,0%,100%);
+  --info: hsl(252,65%,45%); --info-fg: hsl(0,0%,100%);
+  --sidebar-bg: hsl(240,30%,8%);
+  --sidebar-active: hsl(248,40%,22%);
+  --sidebar-fg: hsl(230,25%,80%);
+  --sidebar-primary: hsl(252,70%,70%);
+  --sidebar-border: hsl(240,22%,16%);
+  --radius: 0.5rem;
+  font-family: 'Inter', sans-serif;
+}
+body { background: var(--bg); color: var(--fg); min-height: 100vh; }
+#root { min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 15rem; min-height: 100vh;
+  background: linear-gradient(180deg,
+    hsl(235,40%,6%)  0%,
+    hsl(242,42%,9%)  30%,
+    hsl(250,44%,14%) 65%,
+    hsl(256,46%,19%) 100%
+  );
+  color: var(--sidebar-fg); display: flex; flex-direction: column;
+  border-right: 1px solid hsl(240,28%,11%); flex-shrink: 0;
+}
+.sidebar-header { padding: 1.25rem; border-bottom: 1px solid hsl(240,28%,11%); }
+.sidebar-title { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+.sidebar-sub { font-size: 0.75rem; color: rgba(200,205,255,0.42); margin-top: 0.125rem; }
+.sidebar-nav { flex: 1; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.125rem; }
+.nav-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.625rem 0.75rem; border-radius: 0.5rem;
+  font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  color: rgba(195,200,255,0.55); border: none; background: none;
+  width: 100%; text-align: left; transition: background 0.15s, color 0.15s;
+}
+.nav-item:hover { background: hsla(250,50%,100%,0.06); color: rgba(215,218,255,0.85); }
+.nav-item.active {
+  background: hsla(252,65%,62%,0.18);
+  color: hsl(252,85%,78%);
+  font-weight: 600;
+}
+.sidebar-footer { padding: 1rem; border-top: 1px solid hsl(240,28%,11%); font-size: 0.75rem; color: rgba(200,205,255,0.25); }
+.main { flex: 1; padding: 1.5rem 2rem; overflow: auto; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: opacity 0.15s, background 0.15s; font-family: inherit; }
+.btn-primary { background: hsl(252,55%,30%); color: #fff; border-color: transparent; }
+.btn-primary:hover { background: hsl(252,55%,26%); }
+.btn-outline { background: transparent; border-color: hsl(252,35%,72%); color: hsl(252,50%,36%); }
+.btn-outline:hover { background: hsla(252,55%,30%,0.06); }
+.btn-ghost { background: transparent; color: var(--fg); border: none; padding: 0.375rem; border-radius: 0.375rem; cursor: pointer; display: inline-flex; align-items: center; font-family: inherit; font-size: 0.875rem; }
+.btn-ghost:hover { background: var(--muted); }
+.btn-danger-ghost { background: transparent; color: var(--destructive); border: none; padding: 0.375rem; border-radius: 0.375rem; cursor: pointer; display: inline-flex; align-items: center; font-family: inherit; }
+.btn-danger-ghost:hover { background: hsla(0,72%,51%,0.08); }
+.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8125rem; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+@keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform:none; } }
+.card-header-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+
+/* Dialog / Modal */
+.dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; animation: fadeOverlay 0.15s ease; }
+@keyframes fadeOverlay { from { opacity:0; } to { opacity:1; } }
+.dialog-box { background: var(--card); border-radius: calc(var(--radius)*1.5); width: 100%; max-width: 52rem; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.2s ease-out; }
+@keyframes slideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform:none; } }
+.dialog-header { padding: 1.25rem 1.5rem 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+.dialog-title { font-size: 1.125rem; font-weight: 700; }
+.dialog-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.dialog-footer { padding: 0.75rem 1.5rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.5rem; border-top: 1px solid var(--border); }
+
+/* Form */
+.form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+.form-label { font-size: 0.875rem; font-weight: 500; }
+.form-input { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.875rem; background: var(--card); color: var(--fg); width: 100%; font-family: inherit; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.form-input:focus { border-color: hsl(252,60%,36%); box-shadow: 0 0 0 3px hsla(252,60%,36%,0.12); }
+.form-input.mono { font-family: 'JetBrains Mono', monospace; }
+.select-input { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.875rem; background: var(--card); color: var(--fg); width: 100%; font-family: inherit; outline: none; cursor: pointer; }
+.grid-cols-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.75rem; }
+
+/* Persona login screen */
+.persona-screen {
+  min-height: 100vh;
+  background: linear-gradient(160deg,
+    hsl(235,40%,6%)  0%,
+    hsl(242,42%,9%)  35%,
+    hsl(250,44%,14%) 70%,
+    hsl(256,46%,19%) 100%
+  );
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+.persona-logo { text-align: center; margin-bottom: 2.5rem; }
+.persona-logo-title { font-size: 2.25rem; font-weight: 800; color: #fff; letter-spacing: -0.03em; margin-bottom: 0.25rem; }
+.persona-logo-sub { font-size: 1rem; color: hsl(250,25%,70%); }
+.persona-logo-line { width: 2.5rem; height: 3px; background: hsl(252,55%,50%); border-radius: 2px; margin: 0.75rem auto 0; }
+.persona-role-lbl { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: hsl(250,20%,60%); margin-bottom: 1.25rem; text-align: center; }
+.persona-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.25rem; width: 100%; max-width: 1060px; }
+@media (max-width: 900px) { .persona-cards { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 500px) { .persona-cards { grid-template-columns: 1fr; } }
+.persona-card {
+  background: hsla(245,30%,20%,0.85); border: 1px solid hsl(245,25%,30%);
+  border-radius: 0.875rem; padding: 1.5rem; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex; flex-direction: column; gap: 0.875rem;
+  backdrop-filter: blur(6px);
+}
+.persona-card:hover { border-color: hsl(252,55%,50%); background: hsla(248,35%,24%,0.9); }
+.persona-card-top { display: flex; align-items: flex-start; gap: 0.875rem; }
+.persona-avatar { width: 2.75rem; height: 2.75rem; border-radius: 0.5rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; letter-spacing: 0.02em; background: hsla(252,60%,50%,0.35); }
+.persona-name { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+.persona-role-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.6875rem; font-weight: 700; background: hsla(252,60%,60%,0.25); color: hsl(252,80%,78%); }
+.persona-desc { font-size: 0.8125rem; color: hsl(245,20%,68%); line-height: 1.55; }
+.persona-pages { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.persona-page-chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.625rem; border-radius: 0.375rem; background: hsl(245,28%,28%); border: 1px solid hsl(245,25%,36%); font-size: 0.75rem; font-weight: 500; color: hsl(245,20%,76%); }
+.persona-signin { font-size: 0.8125rem; font-weight: 600; color: hsl(252,55%,60%); background: none; border: none; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 0.25rem; padding: 0; margin-top: 0.25rem; }
+.persona-signin:hover { color: hsl(252,55%,68%); }
+.persona-footer { margin-top: 2rem; font-size: 0.75rem; color: hsl(245,20%,45%); text-align: center; }
+
+/* Sidebar persona badge */
+.sidebar-user { padding: 0.875rem 1rem; border-bottom: 1px solid hsl(240,28%,11%); display: flex; align-items: center; gap: 0.75rem; }
+.sidebar-avatar { width: 2rem; height: 2rem; border-radius: 0.375rem; background: hsla(252,60%,50%,0.35); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.sidebar-user-name { font-size: 0.8125rem; font-weight: 600; color: #fff; }
+.sidebar-user-role { font-size: 0.6875rem; color: rgba(200,205,255,0.45); margin-top: 0.1rem; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: hsl(225,18%,82%); border-radius: 3px; }
+
+/* Misc utility */
+.muted-fg { color: var(--muted-fg); }
+.pill { display: inline-flex; align-items: center; padding: 0.15rem 0.55rem; border-radius: 0.25rem; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, createContext, useContext } = React;
+
+// ── ALL OPTIONS — global catalogue ────────────────────────────────────────────
+const ALL_OPTIONS = [
+  { id:"SEPA EUR TRANSFER",          type:"payment" },
+  { id:"P2P Transfer ETB",           type:"payment" },
+  { id:"Local Transfer France",      type:"payment" },
+  { id:"Local Transfer Ethiopia",    type:"payment" },
+  { id:"Local Transfer Algeria",     type:"payment" },
+  { id:"Internal Transfer EUR",      type:"payment" },
+  { id:"Internal Transfer ETB",      type:"payment" },
+  { id:"Internal Transfer DZD",      type:"payment" },
+  { id:"One Off",                    type:"payment" },
+  { id:"SEPA Transfer France",       type:"payment" },
+  { id:"Internal Transfer ARS V 5",  type:"payment" },
+  { id:"P2P Transfer EUR",           type:"payment" },
+  { id:"View Statement",             type:"feature" },
+  { id:"Change Account Name",        type:"feature" },
+  { id:"Savings goal",               type:"feature" },
+  { id:"Order chequebook",           type:"feature" },
+  { id:"Download Proof Of Account",  type:"feature" },
+];
+const optById = id => ALL_OPTIONS.find(o => o.id === id);
+const ALL_PAYMENTS = ALL_OPTIONS.filter(o => o.type === "payment");
+const ALL_FEATURES = ALL_OPTIONS.filter(o => o.type === "feature");
+
+// ── MASTER CATALOGUE (Admin-only top layer) ───────────────────────────────────
+// Controls which options are globally available for Product Managers to use.
+// Options NOT in masterEnabled are locked out from the product catalogue entirely.
+// Options marked as masterAddOn can only appear as "chargeable" (add-on) in products,
+// never as "standard" — this is automatically enforced at the product level.
+const INIT_MASTER = {
+  enabled:  ALL_OPTIONS.map(o => o.id),   // all enabled by default
+  addOnOnly: [
+    "SEPA EUR TRANSFER",
+    "SEPA Transfer France",
+    "P2P Transfer EUR",
+    "Order chequebook",
+  ],
+};
+
+// ── DATA MODEL ────────────────────────────────────────────────────────────────
+// Product:  standardOptions[]   — free with the product
+//           chargeableOptions[] — available only via a service add-on
+//
+// Service:  enabledOptions[]    — global list of options this service enables
+//           NO productId        — services are product-agnostic
+//
+// Resolution at customer level:
+//   For each option on the customer's product that is "chargeable",
+//   if ANY of the customer's subscribed services has that option in enabledOptions → unlocked
+
+const INIT_PRODUCTS = [
+  {
+    id:"prod-1", name:"Current Account",
+    standardOptions:   ["View Statement","Change Account Name",
+                        "Local Transfer Algeria","P2P Transfer ETB","Internal Transfer DZD",
+                        "Local Transfer France"],
+    chargeableOptions: ["Internal Transfer EUR",
+                        "SEPA Transfer France","Order chequebook","Download Proof Of Account",
+                        "SEPA EUR TRANSFER"],
+  },
+  {
+    id:"prod-2", name:"Premium Account",
+    standardOptions:   ["View Statement","Change Account Name","Savings goal",
+                        "Local Transfer Algeria","P2P Transfer ETB","Internal Transfer DZD",
+                        "Download Proof Of Account",
+                        "Local Transfer France","Internal Transfer EUR","One Off"],
+    chargeableOptions: ["SEPA EUR TRANSFER",
+                        "SEPA Transfer France","P2P Transfer EUR","Order chequebook"],
+  },
+];
+
+// Services are now global — no productId, just a set of options they enable
+const INIT_SERVICES = [
+  { id:"svc-1", name:"S1", code:"A0", type:"paid",
+    enabledOptions:["Internal Transfer EUR","SEPA Transfer France","Order chequebook","Savings goal"] },
+  { id:"svc-2", name:"S2", code:"A1", type:"bundled",
+    enabledOptions:["P2P Transfer EUR","SEPA EUR TRANSFER","Download Proof Of Account","View Statement"] },
+  { id:"svc-3", name:"S3", code:"B2", type:"partner",
+    enabledOptions:["Local Transfer France","Download Proof Of Account","Change Account Name"] },
+];
+
+const INIT_CUSTOMERS = [
+  { id:"cust-1", name:"Customer 1", productId:"prod-1", serviceIds:["svc-1"] },
+  { id:"cust-2", name:"Customer 2", productId:"prod-2", serviceIds:["svc-2"] },
+];
+
+// ── CONTEXT ───────────────────────────────────────────────────────────────────
+const Ctx = createContext(null);
+let _n = 100; const gid = p => `${p}-${++_n}`;
+
+function CatalogProvider({ children }) {
+  const [products,  setP] = useState(INIT_PRODUCTS);
+  const [services,  setS] = useState(INIT_SERVICES);
+  const [customers, setC] = useState(INIT_CUSTOMERS);
+  const [master,    setM] = useState(INIT_MASTER);
+  return (
+    <Ctx.Provider value={{
+      products, services, customers, master,
+      updateMaster: useCallback(m => setM(m), []),
+      addProduct:     useCallback(p  => setP(v=>[...v,{...p,  id:gid("prod")}]),[]),
+      updateProduct:  useCallback(p  => setP(v=>v.map(x=>x.id===p.id?p:x)),[]),
+      deleteProduct:  useCallback(id => setP(v=>v.filter(x=>x.id!==id)),[]),
+      addService:     useCallback(s  => setS(v=>[...v,{...s,  id:gid("svc")}]),[]),
+      updateService:  useCallback(s  => setS(v=>v.map(x=>x.id===s.id?s:x)),[]),
+      deleteService:  useCallback(id => setS(v=>v.filter(x=>x.id!==id)),[]),
+      addCustomer:    useCallback(c  => setC(v=>[...v,{...c,  id:gid("cust")}]),[]),
+      updateCustomer: useCallback(c  => setC(v=>v.map(x=>x.id===c.id?c:x)),[]),
+      deleteCustomer: useCallback(id => setC(v=>v.filter(x=>x.id!==id)),[]),
+    }}>{children}</Ctx.Provider>
+  );
+}
+const useCatalog = () => useContext(Ctx);
+
+// ── TOKENS ────────────────────────────────────────────────────────────────────
+const C = {
+  bg:"hsl(230,20%,97%)", sidebar:"hsl(240,30%,8%)", sidebarActive:"hsl(248,40%,22%)",
+  sidebarText:"hsl(230,25%,80%)", sidebarActiveText:"hsl(252,85%,78%)",
+  border:"hsl(225,20%,88%)", muted:"hsl(230,18%,94%)", mutedText:"hsl(225,14%,48%)",
+  primary:"hsl(252,55%,30%)", primaryLight:"hsla(252,60%,36%,0.10)",
+  success:"hsl(145,50%,38%)", successLight:"hsla(145,50%,42%,0.10)", successBorder:"hsla(145,50%,42%,0.35)",
+  warning:"hsl(38,92%,50%)",  warningLight:"hsla(38,90%,55%,0.10)",  warningBorder:"hsla(38,92%,50%,0.35)",
+  danger:"hsl(0,72%,51%)",   dangerLight:"hsla(0,72%,51%,0.08)",
+  accent:"hsl(28,90%,55%)",  accentLight:"hsla(28,90%,55%,0.10)",
+  text:"hsl(230,20%,10%)",   textSub:"hsl(225,14%,30%)",
+};
+
+
+// ── SERVICE TYPE BADGE ────────────────────────────────────────────────────────
+const SVC_TYPE_CFG = {
+  paid:     { label:"Paid",     bg:"#FCEAEA", color:"#CC2929", border:"#F5AAAA" },
+  bundled:  { label:"Bundled",  bg:C.successLight, color:C.success, border:C.successBorder },
+  partner:  { label:"Partner",  bg:C.primaryLight, color:C.primary, border:"#BBCFE8" },
+};
+const SvcTypeBadge = ({ type }) => {
+  const cfg = SVC_TYPE_CFG[type] || SVC_TYPE_CFG.paid;
+  return <Pill label={cfg.label} bg={cfg.bg} color={cfg.color} border={cfg.border}/>;
+};
+
+// ── ATOMS ─────────────────────────────────────────────────────────────────────
+const Pill = ({ label, bg, color, border }) => (
+  <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:4,
+    background:bg, color, border:`1px solid ${border}`,
+    textTransform:"uppercase", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{label}</span>
+);
+
+const Btn = ({ children, onClick, variant="primary", size="md", disabled }) => {
+  const cls = `btn ${
+    variant==="primary" ? "btn-primary" :
+    variant==="outline" ? "btn-outline"  :
+    variant==="ghost"   ? "btn-ghost"    :
+    variant==="danger"  ? "btn-danger-ghost" : "btn-primary"
+  }${size==="sm" ? " btn-sm" : ""}`;
+  return (
+    <button className={cls} style={{ opacity:disabled?.45:1, cursor:disabled?"not-allowed":"pointer" }}
+      onClick={disabled?undefined:onClick}>{children}</button>
+  );
+};
+
+const Inp = ({ value, onChange, placeholder, mono }) => (
+  <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
+    className={`form-input${mono?" mono":""}`}/>
+);
+const SelEl = ({ value, onChange, options }) => (
+  <select value={value} onChange={e=>onChange(e.target.value)} className="select-input">
+    {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+  </select>
+);
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+const Modal = ({ open, onClose, title, children, footer }) => {
+  if (!open) return null;
+  return (
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="dialog-box" onClick={e=>e.stopPropagation()}>
+        <div className="dialog-header">
+          <span className="dialog-title">{title}</span>
+          <Btn variant="ghost" size="sm" onClick={onClose}>✕</Btn>
+        </div>
+        <div className="dialog-body">{children}</div>
+        {footer && <div className="dialog-footer">{footer}</div>}
+      </div>
+    </div>
+  );
+};
+
+// ── SHARED LAYOUT ─────────────────────────────────────────────────────────────
+const PageHeader = ({ title, description, action }) => (
+  <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between",
+    marginBottom:22, gap:12, flexWrap:"wrap" }}>
+    <div>
+      <h2 style={{ fontSize:20, fontWeight:700 }}>{title}</h2>
+      {description && <p style={{ marginTop:3, fontSize:13, color:C.mutedText }}>{description}</p>}
+    </div>
+    {action}
+  </div>
+);
+
+const SectionLabel = ({ children }) => (
+  <div style={{ fontSize:11, fontWeight:700, color:C.mutedText, textTransform:"uppercase",
+    letterSpacing:"0.06em", marginBottom:7, display:"flex", alignItems:"center", gap:5 }}>
+    {children}
+  </div>
+);
+
+const StatCard = ({ icon, label, value, bg }) => (
+  <div style={{ background:"#fff", borderRadius:10, padding:"14px 18px",
+    border:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:12 }}>
+    <div style={{ width:40, height:40, borderRadius:8, background:bg,
+      display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>{icon}</div>
+    <div>
+      <div style={{ fontSize:22, fontWeight:800 }}>{value}</div>
+      <div style={{ fontSize:12, color:C.mutedText }}>{label}</div>
+    </div>
+  </div>
+);
+
+// ── OPTION LIST READ-ONLY (Products card view) ────────────────────────────────
+// enabled = in standardOptions OR chargeableOptions
+// add-on  = in chargeableOptions (set by master addOnOnly)
+// Visual: enabled → green tick; add-on enabled → amber bg + green tick + 🔒 top-right
+//         disabled → empty box
+const OptionListReadOnly = ({ standardOptions, chargeableOptions }) => {
+  const { master } = useCatalog();
+  const isEnabled  = id => standardOptions.includes(id) || chargeableOptions.includes(id);
+  const isAddOn    = id => chargeableOptions.includes(id);
+  // Only show master-enabled options
+  const availablePayments = ALL_PAYMENTS.filter(o => master.enabled.includes(o.id));
+  const availableFeatures = ALL_FEATURES.filter(o => master.enabled.includes(o.id));
+
+  const OptionChip = ({ o }) => {
+    const enabled  = isEnabled(o.id);
+    const addOn    = isAddOn(o.id);
+    const isAOOnly = master.addOnOnly.includes(o.id);
+    return (
+      <div style={{
+        position:"relative", display:"flex", alignItems:"center", gap:7,
+        padding:"6px 9px", paddingRight: isAOOnly ? 28 : 9, borderRadius:6,
+        background: !enabled ? "#F8FAFB" : addOn ? C.warningLight+"CC" : C.successLight+"99",
+        border:`1px solid ${!enabled ? C.border : addOn ? C.warningBorder : C.successBorder}`
+      }}>
+        {/* Tick checkbox */}
+        <div style={{ width:18, height:18, borderRadius:4, flexShrink:0,
+          border:`2px solid ${enabled ? (addOn ? C.warningBorder : C.successBorder) : "#B8C5D4"}`,
+          background: enabled ? (addOn ? C.warningLight : C.successLight) : "#fff",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:10, fontWeight:800, color: enabled ? (addOn ? C.warning : C.success) : "#ccc" }}>
+          {enabled && "✓"}
+        </div>
+        <span style={{ fontSize:11, color: enabled ? C.text : C.mutedText, lineHeight:1.3, flex:1 }}>{o.id}</span>
+        {/* Lock badge — top-right, always shown if add-on only in master */}
+        {isAOOnly && (
+          <span style={{ position:"absolute", top:3, right:5,
+            fontSize:9, lineHeight:1 }} title="Add-on Only">🔒</span>
+        )}
+      </div>
+    );
+  };
+
+  const Group = ({ label, icon, items }) => (
+    <div style={{ marginBottom:14 }}>
+      <SectionLabel>{icon} {label}</SectionLabel>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:3 }}>
+        {items.map(o => <OptionChip key={o.id} o={o}/>)}
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <Group label="Payment Types"    icon="💳" items={availablePayments}/>
+      <Group label="Product Features" icon="✨" items={availableFeatures}/>
+    </div>
+  );
+};
+
+// ── OPTION LIST (Products edit modal) ────────────────────────────────────────
+// Two states only: enabled or disabled.
+// If master marks option as addOnOnly → goes into chargeableOptions when enabled
+// Otherwise → goes into standardOptions when enabled
+// Visual: disabled=empty; standard enabled=green tick; add-on enabled=amber bg+tick+🔒 top-right
+const OptionList = ({ standardOptions, chargeableOptions, onChangeBoth }) => {
+  const { master } = useCatalog();
+  const availablePayments = ALL_PAYMENTS.filter(o => master.enabled.includes(o.id));
+  const availableFeatures = ALL_FEATURES.filter(o => master.enabled.includes(o.id));
+
+  const isEnabled  = id => standardOptions.includes(id) || chargeableOptions.includes(id);
+  const isAddOnOnly = id => master.addOnOnly.includes(id);
+
+  const toggle = id => {
+    const cur = isEnabled(id);
+    const addOn = isAddOnOnly(id);
+    if (cur) {
+      // disable — remove from whichever list it's in
+      onChangeBoth(
+        standardOptions.filter(x => x !== id),
+        chargeableOptions.filter(x => x !== id)
+      );
+    } else {
+      // enable — add-on-only goes to chargeable, else standard
+      if (addOn) {
+        onChangeBoth(standardOptions, [...chargeableOptions, id]);
+      } else {
+        onChangeBoth([...standardOptions, id], chargeableOptions);
+      }
+    }
+  };
+
+  const OptionBtn = ({ o }) => {
+    const enabled = isEnabled(o.id);
+    const addOn   = isAddOnOnly(o.id);
+    return (
+      <button tabIndex={0} role="checkbox" aria-checked={enabled}
+        aria-label={`${o.id}: ${enabled ? "enabled, click to disable" : "disabled, click to enable"}${addOn ? " (Add-on Only)" : ""}`}
+        onClick={() => toggle(o.id)}
+        onKeyDown={e => (e.key === " " || e.key === "Enter") && toggle(o.id)}
+        onFocus={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${C.primary}55`}
+        onBlur={e => e.currentTarget.style.boxShadow = "none"}
+        style={{
+          position:"relative", display:"flex", alignItems:"center", gap:8,
+          padding:"7px 10px", paddingRight: addOn ? 28 : 10,
+          borderRadius:7, textAlign:"left", fontFamily:"inherit", outline:"none",
+          cursor:"pointer", transition:"background .12s, border-color .12s",
+          background: !enabled ? "transparent" : addOn ? C.warningLight+"CC" : C.successLight+"99",
+          border:`1px solid ${!enabled ? "transparent" : addOn ? C.warningBorder : C.successBorder}`
+        }}>
+        {/* Tick checkbox */}
+        <div style={{ width:20, height:20, borderRadius:5, flexShrink:0, pointerEvents:"none",
+          border:`2px solid ${enabled ? (addOn ? C.warningBorder : C.successBorder) : "#B8C5D4"}`,
+          background: enabled ? (addOn ? C.warningLight : C.successLight) : "#fff",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:11, fontWeight:800, color: enabled ? (addOn ? C.warning : C.success) : "#ccc",
+          transition:"all .12s" }}>
+          {enabled && "✓"}
+        </div>
+        <span style={{ fontSize:12, color: enabled ? C.text : C.mutedText, lineHeight:1.3, flex:1 }}>{o.id}</span>
+        {/* Lock icon — top-right corner, always visible for add-on-only items */}
+        {addOn && (
+          <span style={{ position:"absolute", top:3, right:6,
+            fontSize:10, lineHeight:1 }} title="Add-on Only — defined in Master Catalogue">🔒</span>
+        )}
+      </button>
+    );
+  };
+
+  const Group = ({ label, icon, items }) => (
+    <div style={{ marginBottom:16 }}>
+      <SectionLabel>{icon} {label}</SectionLabel>
+      {items.length === 0 && (
+        <div style={{ fontSize:11, color:C.mutedText, fontStyle:"italic", padding:"6px 0" }}>
+          No options enabled in Master Catalogue
+        </div>
+      )}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4 }}>
+        {items.map(o => <OptionBtn key={o.id} o={o}/>)}
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <Group label="Payment Types"    icon="💳" items={availablePayments}/>
+      <Group label="Product Features" icon="✨" items={availableFeatures}/>
+    </div>
+  );
+};
+
+// ── GLOBAL OPTION CHECKLIST (Services page) ───────────────────────────────────
+// Simple tick/untick across ALL options — no product filter
+const GlobalOptionChecklist = ({ enabledOptions, onToggle }) => {
+  const CB = ({ checked }) => (
+    <div style={{ width:18, height:18, borderRadius:4, flexShrink:0, pointerEvents:"none",
+      border:`2px solid ${checked?C.primary:"#B8C5D4"}`,
+      background:checked?C.primary:"#fff",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      transition:"all .12s" }}>
+      {checked && <svg width="10" height="8" viewBox="0 0 10 8">
+        <path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.8" fill="none"
+          strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>}
+    </div>
+  );
+
+  const Group = ({ label, icon, items }) => (
+    <div style={{ marginBottom:14 }}>
+      <SectionLabel>{icon} {label}</SectionLabel>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4 }}>
+        {items.map(o => {
+          const chk = enabledOptions.includes(o.id);
+          return (
+            <button key={o.id} tabIndex={0} role="checkbox" aria-checked={chk}
+              aria-label={`${o.id}: ${chk?"enabled, click to disable":"disabled, click to enable"}`}
+              onClick={()=>onToggle(o.id)}
+              onKeyDown={e=>(e.key===" "||e.key==="Enter")&&onToggle(o.id)}
+              onFocus={e=>e.currentTarget.style.boxShadow=`0 0 0 2px ${C.primary}55`}
+              onBlur={e=>e.currentTarget.style.boxShadow="none"}
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px",
+                borderRadius:7, textAlign:"left", fontFamily:"inherit", outline:"none",
+                cursor:"pointer", transition:"background .12s, border-color .12s",
+                background:chk?C.primaryLight+"88":"transparent",
+                border:`1px solid ${chk?"#BBCFE8":"transparent"}` }}>
+              <CB checked={chk}/>
+              <span style={{ fontSize:12, lineHeight:1.3 }}>{o.id}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <Group label="Payment Types"    icon="💳" items={ALL_PAYMENTS}/>
+      <Group label="Product Features" icon="✨" items={ALL_FEATURES}/>
+    </div>
+  );
+};
+
+// ── MASTER CATALOGUE PAGE (Admin only) ───────────────────────────────────────
+// Top-level layer: Admin configures which options exist globally and which are
+// forced to be Add-on only. This is a two-step gate:
+//   Step 1 (here): Admin enables/disables options and marks them add-on only
+//   Step 2 (Products page): Product Manager assigns enabled options as Standard or Add-on
+//   The system auto-enforces: if Admin marks an option as Add-on Only,
+//   it can never be set to Standard in any product.
+function MasterCataloguePage() {
+  const { master, updateMaster, products } = useCatalog();
+  const [lockOpen, setLockOpen] = useState(false);
+  const [draft, setDraft]       = useState(null); // working copy while panel is open
+
+  const openLock = () => {
+    setDraft({ enabled:[...master.enabled], addOnOnly:[...master.addOnOnly] });
+    setLockOpen(true);
+  };
+  const closeLock = () => { setLockOpen(false); setDraft(null); };
+  const saveLock  = () => { updateMaster(draft); setLockOpen(false); setDraft(null); };
+
+  const toggleEnabled = id => {
+    const next = { ...draft };
+    if (next.enabled.includes(id)) {
+      next.enabled   = next.enabled.filter(x=>x!==id);
+      next.addOnOnly = next.addOnOnly.filter(x=>x!==id); // can't be addOnOnly if disabled
+    } else {
+      next.enabled = [...next.enabled, id];
+    }
+    setDraft(next);
+  };
+
+  const toggleAddOn = id => {
+    if (!draft.enabled.includes(id)) return; // must be enabled first
+    const next = { ...draft };
+    next.addOnOnly = next.addOnOnly.includes(id)
+      ? next.addOnOnly.filter(x=>x!==id)
+      : [...next.addOnOnly, id];
+    setDraft(next);
+  };
+
+  const disabledCount = ALL_OPTIONS.length - master.enabled.length;
+  const addOnCount    = master.addOnOnly.length;
+
+  // How many products are affected by current master settings
+  const affectedProducts = products.filter(p =>
+    p.standardOptions.some(id => master.addOnOnly.includes(id)) ||
+    p.standardOptions.some(id => !master.enabled.includes(id)) ||
+    p.chargeableOptions.some(id => !master.enabled.includes(id))
+  );
+
+  const MasterOptionRow = ({ o, working }) => {
+    const isEnabled  = working.enabled.includes(o.id);
+    const isAddOnOnly= working.addOnOnly.includes(o.id);
+    return (
+      <div style={{
+        display:"flex", alignItems:"center", gap:10, padding:"8px 12px",
+        borderRadius:7, marginBottom:3,
+        background: !isEnabled ? "#F5F7FA" : isAddOnOnly ? C.warningLight+"99" : C.successLight+"66",
+        border:`1px solid ${!isEnabled ? C.border : isAddOnOnly ? C.warningBorder : C.successBorder}`,
+        opacity: !isEnabled ? 0.6 : 1, transition:"all .15s"
+      }}>
+        {/* Enable toggle */}
+        <button onClick={()=>toggleEnabled(o.id)}
+          title={isEnabled?"Disable this option globally":"Enable this option globally"}
+          style={{ width:22, height:22, borderRadius:5, flexShrink:0, cursor:"pointer",
+            border:`2px solid ${isEnabled?C.success:"#B8C5D4"}`,
+            background:isEnabled?C.success:"#fff",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            transition:"all .12s" }}>
+          {isEnabled && <svg width="10" height="8" viewBox="0 0 10 8">
+            <path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.8" fill="none"
+              strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>}
+        </button>
+
+        <span style={{ flex:1, fontSize:12, fontWeight:500,
+          color:isEnabled?C.text:C.mutedText,
+          textDecoration:isEnabled?"none":"line-through" }}>{o.id}</span>
+
+        {/* Add-on only toggle — only when enabled */}
+        {isEnabled && (
+          <button onClick={()=>toggleAddOn(o.id)}
+            title={isAddOnOnly?"Remove Add-on Only constraint":"Mark as Add-on Only (cannot be Standard in any product)"}
+            style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px",
+              borderRadius:5, cursor:"pointer", fontSize:11, fontWeight:600,
+              border:`1px solid ${isAddOnOnly?C.warningBorder:"#D0D8E4"}`,
+              background:isAddOnOnly?C.warningLight:"#fff",
+              color:isAddOnOnly?C.warning:C.mutedText, transition:"all .12s" }}>
+            🔒 {isAddOnOnly ? "Add-on Only" : "Set Add-on Only"}
+          </button>
+        )}
+        {!isEnabled && (
+          <span style={{ fontSize:11, color:C.mutedText, fontStyle:"italic" }}>Disabled globally</span>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title="Master Catalogue"
+        description="Admin-only: configure which Payments and Features exist globally, and which are forced to be Add-on Only across all products."
+        action={
+          <button onClick={openLock} className="btn btn-primary">
+            🔒 Configure Master Catalogue
+          </button>
+        }
+      />
+
+      {/* Info banner */}
+      <div style={{ padding:"10px 14px", background:"#F0EAFB", border:"1px solid #C9A8F5",
+        borderRadius:8, marginBottom:18, fontSize:12, color:"#5A1FA0", display:"flex", gap:8 }}>
+        <span style={{ fontSize:14, flexShrink:0 }}>🔐</span>
+        <span>
+          <strong>Two-step configuration:</strong> Here you define the global master list — enabling options and optionally marking them as <strong>Add-on Only</strong>.
+          Product Managers then configure each product within these constraints.
+          An option marked <strong>Add-on Only</strong> can never be set as Standard on any product.
+        </span>
+      </div>
+
+      {/* Status cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:22 }}>
+        <StatCard icon="✅" label="Globally Enabled" value={master.enabled.length} bg={C.successLight}/>
+        <StatCard icon="🚫" label="Globally Disabled" value={disabledCount} bg="#F5F7FA"/>
+        <StatCard icon="🔒" label="Add-on Only" value={addOnCount} bg={C.warningLight}/>
+        <StatCard icon="⚠️" label="Products with conflicts" value={affectedProducts.length} bg={affectedProducts.length>0?"#FCEAEA":C.muted}/>
+      </div>
+
+      {/* Conflict warning */}
+      {affectedProducts.length > 0 && (
+        <div style={{ padding:"10px 14px", background:"#FCEAEA", border:"1px solid #F5AAAA",
+          borderRadius:8, marginBottom:18, fontSize:12, color:C.danger }}>
+          <strong>⚠️ Configuration conflict:</strong> {affectedProducts.length} product(s) have options
+          that violate the current Master Catalogue rules ({affectedProducts.map(p=>p.name).join(", ")}).
+          Edit those products to bring them into compliance.
+        </div>
+      )}
+
+      {/* Current state: Payments */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+        {[
+          { label:"Payment Types", icon:"💳", items:ALL_PAYMENTS },
+          { label:"Product Features", icon:"✨", items:ALL_FEATURES },
+        ].map(({ label, icon, items }) => (
+          <div key={label} style={{ background:"#fff", borderRadius:10, border:`1px solid ${C.border}` }}>
+            <div style={{ padding:"13px 16px", borderBottom:`1px solid ${C.border}`,
+              fontWeight:700, fontSize:14, display:"flex", alignItems:"center", gap:8 }}>
+              {icon} {label}
+            </div>
+            <div style={{ padding:14 }}>
+              {items.map(o => {
+                const isEnabled   = master.enabled.includes(o.id);
+                const isAddOnOnly = master.addOnOnly.includes(o.id);
+                return (
+                  <div key={o.id} style={{
+                    position:"relative",
+                    display:"flex", alignItems:"center", gap:8, padding:"7px 10px",
+                    borderRadius:7, marginBottom:3,
+                    background: !isEnabled ? "#F5F7FA" : isAddOnOnly ? C.warningLight+"99" : C.successLight+"66",
+                    border:`1px solid ${!isEnabled ? C.border : isAddOnOnly ? C.warningBorder : C.successBorder}`,
+                    opacity: !isEnabled ? 0.55 : 1
+                  }}>
+                    {/* Selection indicator — always a tick (or dash if disabled) */}
+                    <div style={{ width:20, height:20, borderRadius:4, flexShrink:0,
+                      background: !isEnabled ? "#F5F7FA" : C.successLight,
+                      border:`2px solid ${!isEnabled ? "#B8C5D4" : C.successBorder}`,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:11, color: !isEnabled ? "#ccc" : C.success, fontWeight:800 }}>
+                      {!isEnabled ? "—" : "✓"}
+                    </div>
+                    <span style={{ flex:1, fontSize:12, color: isEnabled ? C.text : C.mutedText,
+                      textDecoration: isEnabled ? "none" : "line-through" }}>{o.id}</span>
+                    {/* Add-on Only lock badge — top right corner */}
+                    {isAddOnOnly && (
+                      <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:4,
+                        background:C.warningLight, color:C.warning, border:`1px solid ${C.warningBorder}`,
+                        textTransform:"uppercase", letterSpacing:"0.04em", display:"flex", alignItems:"center", gap:4 }}>
+                        🔒 Add-on Only
+                      </span>
+                    )}
+                    {!isEnabled && (
+                      <Pill label="Disabled" bg="#F5F7FA" color={C.mutedText} border={C.border}/>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── LOCK MODAL ── */}
+      <Modal open={lockOpen} onClose={closeLock} title="🔒 Configure Master Catalogue"
+        footer={<><Btn variant="outline" onClick={closeLock}>Cancel</Btn>
+                   <Btn onClick={saveLock}>Save Master Configuration</Btn></>}>
+        {draft && (
+          <div>
+            <div style={{ padding:"10px 12px", background:"#F0EAFB", borderRadius:7,
+              border:"1px solid #C9A8F5", marginBottom:16, fontSize:12, color:"#5A1FA0" }}>
+              <strong>Instructions:</strong> Use the <strong>✓ checkbox</strong> to enable/disable an option globally.
+              Use the <strong>🔒 Set Add-on Only</strong> button to prevent an option from ever being set as Standard in any product.
+              Two-step: only enabled options can be configured in products; only non-add-on-only options can be Standard.
+            </div>
+
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+              {[
+                { label:"💳 Payment Types",    items:ALL_PAYMENTS },
+                { label:"✨ Product Features", items:ALL_FEATURES },
+              ].map(({ label, items }) => (
+                <div key={label}>
+                  <div style={{ fontSize:11, fontWeight:700, color:C.mutedText,
+                    textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:8 }}>{label}</div>
+                  {items.map(o => <MasterOptionRow key={o.id} o={o} working={draft}/>)}
+                </div>
+              ))}
+            </div>
+
+            {/* Summary of draft changes */}
+            <div style={{ marginTop:16, padding:"10px 12px", background:C.muted,
+              borderRadius:7, border:`1px solid ${C.border}`, fontSize:11, color:C.textSub }}>
+              <strong>Draft:</strong>{" "}
+              {draft.enabled.length} enabled · {ALL_OPTIONS.length - draft.enabled.length} disabled · {draft.addOnOnly.length} Add-on Only
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────────────────────
+function OverviewPage() {
+  const { products, services, customers } = useCatalog();
+  return (
+    <div>
+      <PageHeader title="DBS Product & Service Catalogue"
+        description="Digital Banking Product & Service Catalog — Back Office"/>
+
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14, marginBottom:26 }}>
+        <StatCard icon="📦" label="Products"        value={products.length}  bg={C.primaryLight}/>
+        <StatCard icon="🔧" label="Services"        value={services.length}  bg={C.accentLight}/>
+        <StatCard icon="👥" label="Customers"        value={customers.length} bg="#E0F2FA"/>
+      </div>
+
+      {/* Legend */}
+      <div style={{ display:"flex", gap:18, padding:"9px 14px", background:"#fff",
+        borderRadius:8, border:`1px solid ${C.border}`, marginBottom:18,
+        fontSize:12, flexWrap:"wrap", alignItems:"center" }}>
+        <span style={{ fontWeight:700, color:C.textSub, fontSize:11 }}>LEGEND:</span>
+        {[
+          { bg:C.successLight, border:C.successBorder, icon:"✓", color:C.success, label:"Standard — free with product" },
+          { bg:C.warningLight, border:C.warningBorder, icon:"🔒", color:C.warning, label:"Add-on required — unlocked via a service" },
+          { bg:"#fff",         border:"#B8C5D4",       icon:null, color:"#ccc",    label:"Not offered" },
+        ].map(({ bg, border, icon, color, label }) => (
+          <span key={label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <div style={{ width:18, height:18, borderRadius:4, background:bg,
+              border:`2px solid ${border}`, display:"flex", alignItems:"center",
+              justifyContent:"center", fontWeight:800, fontSize:11, color }}>{icon}</div>
+            {label}
+          </span>
+        ))}
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, marginBottom:18 }}>
+        {/* Products card */}
+        <div style={{ background:"#fff", borderRadius:10, border:`1px solid ${C.border}` }}>
+          <div style={{ padding:"13px 16px", borderBottom:`1px solid ${C.border}`,
+            fontWeight:700, fontSize:14 }}>Products — Option Configuration</div>
+          <div style={{ padding:14, display:"flex", flexDirection:"column", gap:10 }}>
+            {products.map(p => (
+              <div key={p.id} style={{ padding:12, borderRadius:8, background:C.muted, border:`1px solid ${C.border}` }}>
+                <div style={{ fontWeight:600, fontSize:13, marginBottom:2 }}>{p.name}</div>
+                <div style={{ fontSize:11, color:C.mutedText, marginBottom:10 }}>
+                  <span style={{ color:C.success, fontWeight:600 }}>{p.standardOptions.length} standard</span>
+                  {" · "}
+                  <span style={{ color:C.warning, fontWeight:600 }}>{p.chargeableOptions.length} add-on</span>
+                </div>
+                {[["✓ Standard", p.standardOptions, C.success, C.successLight, C.successBorder],
+                  ["🔒 Add-on required", p.chargeableOptions, C.warning, C.warningLight, C.warningBorder]
+                ].map(([lbl, ids, color, bg, border]) => (
+                  <div key={lbl} style={{ marginBottom:6 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color, textTransform:"uppercase",
+                      letterSpacing:"0.05em", marginBottom:4 }}>{lbl}</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                      {ids.length===0 && <span style={{ fontSize:11, color:C.mutedText }}>None</span>}
+                      {ids.map(id=><span key={id} style={{ fontSize:11, padding:"2px 8px",
+                        borderRadius:4, fontWeight:500, background:bg, color, border:`1px solid ${border}` }}>{id}</span>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Services card — global, no product */}
+        <div style={{ background:"#fff", borderRadius:10, border:`1px solid ${C.border}` }}>
+          <div style={{ padding:"13px 16px", borderBottom:`1px solid ${C.border}`,
+            fontWeight:700, fontSize:14 }}>
+            Services — Global Option Catalogue
+            <span style={{ fontSize:11, fontWeight:400, color:C.mutedText, marginLeft:8 }}>
+              (product-agnostic)
+            </span>
+          </div>
+          <div style={{ padding:14, display:"flex", flexDirection:"column", gap:10 }}>
+            {services.map(s => (
+              <div key={s.id} style={{ padding:12, borderRadius:8, background:C.muted, border:`1px solid ${C.border}` }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                  <div>
+                    <span style={{ fontWeight:700, fontSize:13 }}>{s.name}</span>
+                    <span style={{ fontSize:11, color:C.mutedText, marginLeft:8 }}>
+                      {s.enabledOptions.length} option{s.enabledOptions.length!==1?"s":""} enabled
+                    </span>
+                  </div>
+                  <span style={{ fontFamily:"monospace", fontSize:11, background:"#fff",
+                    border:`1px solid ${C.border}`, borderRadius:4, padding:"1px 6px" }}>
+                    {s.code}</span>
+                  <SvcTypeBadge type={s.type}/>
+                </div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                  {s.enabledOptions.map(id=>(
+                    <span key={id} style={{ fontSize:11, padding:"2px 8px", borderRadius:4,
+                      fontWeight:500, background:C.primaryLight, color:C.primary,
+                      border:"1px solid #BBCFE8" }}>{id}</span>
+                  ))}
+                  {s.enabledOptions.length===0 && <span style={{ fontSize:11, color:C.mutedText }}>No options configured</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Customer resolution */}
+      <div style={{ background:"#fff", borderRadius:10, border:`1px solid ${C.border}` }}>
+        <div style={{ padding:"13px 16px", borderBottom:`1px solid ${C.border}`,
+          fontWeight:700, fontSize:14 }}>Customer Subscriptions & Resolved Capabilities</div>
+        <div style={{ padding:14, display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+          {customers.map(cust => {
+            const product  = products.find(p=>p.id===cust.productId);
+            const custSvcs = services.filter(s=>cust.serviceIds.includes(s.id));
+            // All options enabled by subscribed services
+            const svcEnabled = new Set(custSvcs.flatMap(s=>s.enabledOptions));
+            const std = product?.standardOptions||[];
+            const chg = product?.chargeableOptions||[];
+            const allOpts = [...std, ...chg.filter(id=>!std.includes(id))];
+            return (
+              <div key={cust.id} style={{ padding:14, borderRadius:8,
+                border:`1px solid ${C.border}`, background:"#FAFCFF" }}>
+                <div style={{ fontWeight:700, fontSize:13, marginBottom:2 }}>{cust.name}</div>
+                <div style={{ fontSize:11, color:C.mutedText, marginBottom:10 }}>
+                  {product?.name} — {custSvcs.map(s=>s.name).join(", ")||"No services subscribed"}</div>
+                {(() => {
+                  const renderRow = id => {
+                    const isStd    = std.includes(id);
+                    const isChg    = chg.includes(id) && !isStd;
+                    const isActive = isStd || (isChg && svcEnabled.has(id));
+                    const via = custSvcs.filter(s=>s.enabledOptions.includes(id)).map(s=>s.name).join(", ");
+                    return (
+                      <div key={id} style={{ display:"flex", alignItems:"center", gap:6,
+                        fontSize:11, padding:"3px 0", borderBottom:`1px solid ${C.border}66` }}>
+                        <span style={{ fontSize:12 }}>{isActive?"✅":"❌"}</span>
+                        <span style={{ flex:1, color:isActive?C.text:C.mutedText,
+                          textDecoration:isActive?"none":"line-through" }}>{id}</span>
+                        {isStd && <Pill label="Std" bg={C.successLight} color={C.success} border={C.successBorder}/>}
+                        {isChg && isActive  && <Pill label={`via ${via}`} bg={C.primaryLight} color={C.primary} border="#BBCFE8"/>}
+                        {isChg && !isActive && <Pill label="Add-on" bg={C.warningLight} color={C.warning} border={C.warningBorder}/>}
+                      </div>
+                    );
+                  };
+                  const payments = allOpts.filter(id=>optById(id)?.type==="payment");
+                  const features = allOpts.filter(id=>optById(id)?.type==="feature");
+                  return (
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                      <div>
+                        <div style={{ fontSize:10, fontWeight:700, color:C.mutedText, textTransform:"uppercase",
+                          letterSpacing:"0.06em", marginBottom:4 }}>💳 Payments</div>
+                        {payments.length===0
+                          ? <span style={{ fontSize:11, color:C.mutedText }}>None</span>
+                          : payments.map(renderRow)}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:10, fontWeight:700, color:C.mutedText, textTransform:"uppercase",
+                          letterSpacing:"0.06em", marginBottom:4 }}>✨ Features</div>
+                        {features.length===0
+                          ? <span style={{ fontSize:11, color:C.mutedText }}>None</span>
+                          : features.map(renderRow)}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PRODUCTS PAGE ─────────────────────────────────────────────────────────────
+function ProductsPage() {
+  const { products, services, addProduct, updateProduct, deleteProduct, master } = useCatalog();
+  const [open, setOpen]       = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [name, setName]       = useState("");
+  const [stdOpts, setStd]     = useState([]);
+  const [chgOpts, setChg]     = useState([]);
+
+  const openNew  = ()=> { setEditing(null); setName(""); setStd([]); setChg([]); setOpen(true); };
+  const openEdit = p => { setEditing(p); setName(p.name); setStd([...p.standardOptions]); setChg([...p.chargeableOptions]); setOpen(true); };
+  const save = () => {
+    if (!name.trim()) return;
+    editing ? updateProduct({...editing, name:name.trim(), standardOptions:stdOpts, chargeableOptions:chgOpts})
+            : addProduct({name:name.trim(), standardOptions:stdOpts, chargeableOptions:chgOpts});
+    setOpen(false);
+  };
+
+  return (
+    <div>
+      <PageHeader title="Products"
+        description="Use ✏️ Edit to configure options per product. View mode shows the current state at a glance."
+        action={<Btn onClick={openNew}>＋ Add Product</Btn>}/>
+
+      {/* Legend */}
+      <div style={{ display:"flex", gap:18, fontSize:12, marginBottom:18,
+        padding:"8px 14px", background:"#fff", borderRadius:8, border:`1px solid ${C.border}`,
+        flexWrap:"wrap", alignItems:"center" }}>
+        <span style={{ fontWeight:700, color:C.textSub, fontSize:11 }}>LEGEND:</span>
+        {[
+          { bg:C.successLight, border:C.successBorder, icon:"✓", color:C.success, label:"Enabled — standard, free with product" },
+          { bg:C.warningLight, border:C.warningBorder, icon:"✓", color:C.warning, label:"Enabled — add-on (🔒 set in Master Catalogue)" },
+          { bg:"#F8FAFB",      border:C.border,        icon:null, color:"#ccc",   label:"Disabled — not offered on this product" },
+        ].map(({ bg, border, icon, color, label }) => (
+          <span key={label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <div style={{ width:18, height:18, borderRadius:4, background:bg, border:`2px solid ${border}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontWeight:800, fontSize:11, color }}>{icon}</div>
+            {label}
+          </span>
+        ))}
+        <span style={{ marginLeft:"auto", fontSize:11, color:C.mutedText, fontStyle:"italic" }}>
+          Click ✏️ Edit on a product to configure its options
+        </span>
+      </div>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+        {products.map(p => {
+          const linkedSvcs = services.filter(s =>
+            s.enabledOptions.some(id => p.chargeableOptions.includes(id))
+          );
+          return (
+            <div key={p.id} className="card" style={{ background:"#fff", borderRadius:10,
+              border:`1px solid ${C.border}`, overflow:"hidden" }}>
+              <div style={{ padding:"13px 18px", borderBottom:`1px solid ${C.border}`,
+                display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div>
+                  <span style={{ fontWeight:700, fontSize:15 }}>{p.name}</span>
+                  <span style={{ fontSize:12, color:C.mutedText, marginLeft:10 }}>
+                    <span style={{ color:C.success, fontWeight:600 }}>{p.standardOptions.length} standard</span>
+                    {" · "}
+                    <span style={{ color:C.warning, fontWeight:600 }}>{p.chargeableOptions.length} add-on 🔒</span>
+                  </span>
+                </div>
+                <div style={{ display:"flex", gap:4 }}>
+                  <Btn variant="ghost" size="sm" onClick={()=>openEdit(p)}>✏️ Edit</Btn>
+                  <Btn variant="danger" size="sm" onClick={()=>deleteProduct(p.id)}>🗑</Btn>
+                </div>
+              </div>
+
+              <div style={{ padding:"16px 18px" }}>
+                <OptionListReadOnly
+                  standardOptions={p.standardOptions}
+                  chargeableOptions={p.chargeableOptions}
+                />
+              </div>
+
+              {/* Services that cover this product's chargeable options */}
+              {linkedSvcs.length > 0 && (
+                <div style={{ padding:"10px 18px 14px", borderTop:`1px solid ${C.border}` }}>
+                  <SectionLabel>🔗 Services covering add-on options on this product</SectionLabel>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                    {linkedSvcs.map(s=>(
+                      <span key={s.id} style={{ display:"inline-flex", alignItems:"center", gap:6,
+                        padding:"4px 10px", borderRadius:6, background:C.muted, border:`1px solid ${C.border}`,
+                        fontSize:12, fontWeight:600 }}>
+                        {s.name}
+                        <span style={{ fontFamily:"monospace", fontWeight:400, color:C.mutedText, fontSize:11 }}>({s.code})</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <Modal open={open} onClose={()=>setOpen(false)} title={editing?"Edit Product":"New Product"}
+        footer={<><Btn variant="outline" onClick={()=>setOpen(false)}>Cancel</Btn>
+                   <Btn onClick={save}>{editing?"Update":"Create"}</Btn></>}>
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:C.textSub, display:"block", marginBottom:5 }}>Product Name</label>
+            <Inp value={name} onChange={setName} placeholder="e.g. Savings Account"/>
+          </div>
+          <div>
+            <label style={{ fontSize:13, fontWeight:700, display:"block", marginBottom:4 }}>Payment Types & Features</label>
+            {(master.addOnOnly.length > 0 || master.enabled.length < ALL_OPTIONS.length) && (
+              <div style={{ padding:"7px 10px", background:"#F0EAFB", border:"1px solid #C9A8F5",
+                borderRadius:6, marginBottom:8, fontSize:11, color:"#5A1FA0" }}>
+                🔐 <strong>Master Catalogue active:</strong>{" "}
+                {ALL_OPTIONS.length - master.enabled.length > 0 && `${ALL_OPTIONS.length - master.enabled.length} option(s) hidden (disabled globally)`}
+                {ALL_OPTIONS.length - master.enabled.length > 0 && master.addOnOnly.length > 0 && " · "}
+                {master.addOnOnly.length > 0 && `${master.addOnOnly.length} option(s) are Add-on Only (🔒 badge — cannot be Standard)`}
+              </div>
+            )}
+            <p style={{ fontSize:11, color:C.mutedText, marginBottom:10 }}>
+              Click to <strong>enable</strong> or <strong>disable</strong> each option on this product.
+              Options marked 🔒 are defined as <strong>Add-on Only</strong> in the Master Catalogue — they are automatically treated as add-ons (amber) when enabled.</p>
+            <OptionList standardOptions={stdOpts} chargeableOptions={chgOpts}
+              onChangeBoth={(std,chg)=>{setStd(std);setChg(chg);}}/>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// ── COVERAGE SUMMARY PANEL (Option 1 — aggregate, scales to 50-60 products) ──
+// Shows a single summary header + breakdown counts. Drill-down per-product on demand.
+function CoverageSummaryPanel({ enabledOptions, products }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (enabledOptions.length === 0) {
+    return (
+      <div style={{ padding:"14px 16px", background:C.muted, display:"flex",
+        alignItems:"center", justifyContent:"center", minHeight:80 }}>
+        <p style={{ fontSize:11, color:C.mutedText, fontStyle:"italic", textAlign:"center" }}>
+          Tick options on the left to see product coverage.</p>
+      </div>
+    );
+  }
+
+  // Compute per-product stats
+  const stats = products.map(p => ({
+    p,
+    effective: enabledOptions.filter(id => p.chargeableOptions.includes(id)),
+    redundant: enabledOptions.filter(id => p.standardOptions.includes(id)),
+  }));
+
+  const withEffect    = stats.filter(s => s.effective.length > 0);
+  const withRedundant = stats.filter(s => s.redundant.length > 0);
+  const noEffect      = stats.filter(s => s.effective.length === 0 && s.redundant.length === 0);
+  const totalUnlocks = withEffect.reduce((n, s) => n + s.effective.length, 0);
+
+  return (
+    <div style={{ padding:"14px 16px", background:C.muted, display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ fontSize:11, fontWeight:700, color:C.textSub,
+        textTransform:"uppercase", letterSpacing:"0.06em" }}>
+        📊 Product Coverage
+      </div>
+
+      {/* ── Aggregate summary ─────────────────────────────── */}
+      <div style={{ background:"#fff", borderRadius:8, border:`1px solid ${C.border}`, overflow:"hidden" }}>
+
+        {/* Headline */}
+        <div style={{ padding:"10px 12px", borderBottom:`1px solid ${C.border}` }}>
+          <div style={{ fontSize:13, fontWeight:700, color: withEffect.length > 0 ? C.success : C.mutedText }}>
+            {withEffect.length > 0
+              ? `Effective on ${withEffect.length} of ${products.length} product${products.length!==1?"s":""}`
+              : `No effect on any of the ${products.length} products`}
+          </div>
+          {withEffect.length > 0 && (
+            <div style={{ fontSize:11, color:C.mutedText, marginTop:2 }}>
+              {totalUnlocks} add-on option{totalUnlocks!==1?"s":""} will be unlocked across those products
+            </div>
+          )}
+        </div>
+
+        {/* Breakdown row */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr",
+          borderBottom:`1px solid ${C.border}` }}>
+          {[
+            { count:withEffect.length,    label:"Unlock options",   bg:C.successLight, color:C.success,  border:C.successBorder },
+            { count:withRedundant.length, label:"Already standard", bg:C.warningLight, color:C.warning,  border:C.warningBorder },
+            { count:noEffect.length,      label:"No overlap",       bg:"#F5F7FA",      color:C.mutedText, border:C.border },
+          ].map(({ count, label, bg, color, border }) => (
+            <div key={label} style={{ padding:"8px 10px", textAlign:"center",
+              borderRight:`1px solid ${C.border}` }}>
+              <div style={{ fontSize:18, fontWeight:800, color }}>{count}</div>
+              <div style={{ fontSize:10, color:C.mutedText, marginTop:1 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Info note */}
+        <div style={{ padding:"8px 12px", background:"#FAFCFF",
+          borderBottom:`1px solid ${C.border}`, display:"flex", gap:7, alignItems:"flex-start" }}>
+          <span style={{ fontSize:14, flexShrink:0, marginTop:1 }}>ℹ️</span>
+          <span style={{ fontSize:11, color:C.mutedText, lineHeight:1.5 }}>
+            A product can simultaneously appear in <strong style={{color:C.success}}>Unlock options</strong> and <strong style={{color:C.warning}}>Already standard</strong> if it has both add-on and standard matches against this service's enabled list.
+            <strong> No overlap</strong> shows only products with zero matches of any kind.
+          </span>
+        </div>
+
+        {/* Drill-down toggle */}
+        <button onClick={()=>setExpanded(!expanded)}
+          style={{ width:"100%", padding:"7px 12px", background:"transparent",
+            border:"none", cursor:"pointer", fontSize:11, color:C.primary,
+            fontWeight:600, textAlign:"left", display:"flex", alignItems:"center", gap:5 }}>
+          <span style={{ transition:"transform .2s",
+            display:"inline-block", transform: expanded?"rotate(90deg)":"none" }}>▶</span>
+          {expanded ? "Hide product details" : "Show product details"}
+        </button>
+
+        {/* Per-product drill-down — only renders when expanded */}
+        {expanded && (
+          <div style={{ borderTop:`1px solid ${C.border}`, maxHeight:320, overflowY:"auto" }}>
+            {/* Products with effect first */}
+            {withEffect.length > 0 && (
+              <div>
+                <div style={{ padding:"5px 12px", fontSize:10, fontWeight:700,
+                  color:C.success, textTransform:"uppercase", letterSpacing:"0.05em",
+                  background:C.successLight+"66", borderBottom:`1px solid ${C.border}` }}>
+                  ✓ Will unlock add-on options ({withEffect.length})
+                </div>
+                {withEffect.map(({ p, effective, redundant }) => (
+                  <div key={p.id} style={{ padding:"7px 12px",
+                    borderBottom:`1px solid ${C.border}88` }}>
+                    <div style={{ display:"flex", justifyContent:"space-between",
+                      alignItems:"baseline", marginBottom:3 }}>
+                      <span style={{ fontSize:12, fontWeight:600 }}>{p.name}</span>
+                      <span style={{ fontSize:11, color:C.success, fontWeight:600 }}>
+                        {effective.length} option{effective.length!==1?"s":""}
+                      </span>
+                    </div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                      {effective.map(id => (
+                        <span key={id} style={{ fontSize:10, padding:"1px 6px", borderRadius:3,
+                          background:C.successLight, color:C.success,
+                          border:`1px solid ${C.successBorder}` }}>{id}</span>
+                      ))}
+                    </div>
+                    {redundant.length > 0 && (
+                      <div style={{ fontSize:10, color:C.mutedText, marginTop:4, fontStyle:"italic" }}>
+                        + {redundant.length} already standard on this product (ignored)
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Products where service options clash with standard */}
+            {withRedundant.length > 0 && (
+              <div>
+                <div style={{ padding:"5px 12px", fontSize:10, fontWeight:700,
+                  color:C.warning, textTransform:"uppercase", letterSpacing:"0.05em",
+                  background:C.warningLight+"66", borderBottom:`1px solid ${C.border}` }}>
+                  ⚠ Options already standard — no effect ({withRedundant.length})
+                </div>
+                {withRedundant.map(({ p, redundant }) => (
+                  <div key={p.id} style={{ padding:"7px 12px",
+                    borderBottom:`1px solid ${C.border}88` }}>
+                    <div style={{ fontSize:12, fontWeight:600, marginBottom:3 }}>{p.name}</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                      {redundant.map(id => (
+                        <span key={id} style={{ fontSize:10, padding:"1px 6px", borderRadius:3,
+                          background:"#F5F7FA", color:C.mutedText,
+                          border:`1px solid ${C.border}`, textDecoration:"line-through" }}>{id}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Products with no overlap */}
+            {noEffect.length > 0 && (
+              <div>
+                <div style={{ padding:"5px 12px", fontSize:10, fontWeight:700,
+                  color:C.mutedText, textTransform:"uppercase", letterSpacing:"0.05em",
+                  background:"#F5F7FA", borderBottom:`1px solid ${C.border}` }}>
+                  No overlap ({noEffect.length})
+                </div>
+                <div style={{ padding:"7px 12px", display:"flex", flexWrap:"wrap", gap:6 }}>
+                  {noEffect.map(({ p }) => (
+                    <span key={p.id} style={{ fontSize:11, color:C.mutedText }}>{p.name}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── SERVICES PAGE — global, no product binding ────────────────────────────────
+function ServicesPage() {
+  const { products, services, addService, updateService, deleteService } = useCatalog();
+  const [open, setOpen]       = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [name, setName]       = useState("");
+  const [code, setCode]       = useState("");
+  const [svcType, setSvcType] = useState("paid");
+  const [enabled, setEnabled] = useState([]);
+
+  const openNew  = ()=> { setEditing(null); setName(""); setCode(""); setSvcType("paid"); setEnabled([]); setOpen(true); };
+  const openEdit = s => { setEditing(s); setName(s.name); setCode(s.code); setSvcType(s.type||"paid"); setEnabled([...s.enabledOptions]); setOpen(true); };
+  const togOpt   = v => setEnabled(prev=>prev.includes(v)?prev.filter(x=>x!==v):[...prev,v]);
+  const save = () => {
+    if (!name.trim()||!code.trim()) return;
+    editing ? updateService({...editing, name:name.trim(), code:code.trim(), type:svcType, enabledOptions:enabled})
+            : addService({name:name.trim(), code:code.trim(), type:svcType, enabledOptions:enabled});
+    setOpen(false);
+  };
+
+  return (
+    <div>
+      <PageHeader title="Services"
+        description="Services are product-agnostic. Configure which payments and features each service enables — the customer's product determines what actually gets unlocked."
+        action={<Btn onClick={openNew}>＋ Add Service</Btn>}/>
+
+      {/* Explainer banner */}
+      <div style={{ padding:"10px 14px", background:C.primaryLight, border:`1px solid #BBCFE8`,
+        borderRadius:8, marginBottom:18, fontSize:12, color:C.primary, display:"flex", gap:8 }}>
+        <span style={{ fontSize:14 }}>ℹ️</span>
+        <span>
+          Services are <strong>global</strong> — they are not tied to any product.
+          When a customer subscribes to a service, only the options that also appear as
+          <strong> Add-on required 🔒</strong> on their product will be unlocked.
+        </span>
+      </div>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+        {services.map(s => (
+          <div key={s.id} className="card" style={{ background:"#fff", borderRadius:10,
+            border:`1px solid ${C.border}`, overflow:"hidden" }}>
+            <div style={{ padding:"13px 18px", borderBottom:`1px solid ${C.border}`,
+              display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <div style={{ width:36, height:36, borderRadius:8, background:C.accentLight,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontWeight:800, fontSize:13, color:C.accent }}>{s.name}</div>
+                <div>
+                  <span style={{ fontWeight:700, fontSize:14 }}>{s.name}</span>
+                  <span style={{ fontFamily:"monospace", fontSize:12, color:C.mutedText, marginLeft:8 }}>{s.code}</span>
+                  <span style={{ marginLeft:8 }}><SvcTypeBadge type={s.type}/></span>
+                  <div style={{ fontSize:11, color:C.mutedText, marginTop:1 }}>
+                    {s.enabledOptions.length} option{s.enabledOptions.length!==1?"s":""} enabled globally
+                  </div>
+                </div>
+              </div>
+              <div style={{ display:"flex", gap:4 }}>
+                <Btn variant="ghost" size="sm" onClick={()=>openEdit(s)}>✏️ Edit</Btn>
+                <Btn variant="danger" size="sm" onClick={()=>deleteService(s.id)}>🗑</Btn>
+              </div>
+            </div>
+
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 320px",
+              borderTop:`1px solid ${C.border}` }}>
+
+              {/* LEFT — global option checklist */}
+              <div style={{ padding:"14px 18px", borderRight:`1px solid ${C.border}` }}>
+                <GlobalOptionChecklist
+                  enabledOptions={s.enabledOptions}
+                  onToggle={v=>{
+                    const next = s.enabledOptions.includes(v)
+                      ? s.enabledOptions.filter(x=>x!==v)
+                      : [...s.enabledOptions, v];
+                    updateService({...s, enabledOptions:next});
+                  }}
+                />
+              </div>
+
+              {/* RIGHT — product coverage summary (Option 1: aggregate) */}
+              <CoverageSummaryPanel enabledOptions={s.enabledOptions} products={products} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Modal open={open} onClose={()=>setOpen(false)} title={editing?"Edit Service":"New Service"}
+        footer={<><Btn variant="outline" onClick={()=>setOpen(false)}>Cancel</Btn>
+                   <Btn onClick={save}>{editing?"Update":"Create"}</Btn></>}>
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:C.textSub, display:"block", marginBottom:5 }}>Service Name</label>
+              <Inp value={name} onChange={setName} placeholder="e.g. S4"/>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:C.textSub, display:"block", marginBottom:5 }}>Partner Code</label>
+              <Inp value={code} onChange={setCode} placeholder="e.g. C0" mono/>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:C.textSub, display:"block", marginBottom:5 }}>Service Type</label>
+              <SelEl value={svcType} onChange={setSvcType} options={[
+                {value:"paid",    label:"💳 Paid — customer is charged for this service"},
+                {value:"bundled", label:"✓ Bundled — free with a product tier"},
+                {value:"partner", label:"🤝 Partner — activated by a partner, no direct charge"},
+              ]}/>
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 240px", gap:16, alignItems:"start" }}>
+            <div>
+              <label style={{ fontSize:13, fontWeight:700, display:"block", marginBottom:4 }}>Enabled Options</label>
+              <p style={{ fontSize:11, color:C.mutedText, marginBottom:10 }}>
+                Tick all payments and features this service enables. The customer's product determines which of these are actually unlocked.</p>
+              <GlobalOptionChecklist enabledOptions={enabled} onToggle={togOpt}/>
+            </div>
+            {/* Live coverage summary (Option 1: aggregate) */}
+            <CoverageSummaryPanel enabledOptions={enabled} products={products} />
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// ── CUSTOMERS PAGE ────────────────────────────────────────────────────────────
+function CustomersPage() {
+  const { customers, products, services, addCustomer, updateCustomer, deleteCustomer } = useCatalog();
+  const [open, setOpen]       = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [name, setName]       = useState("");
+  const [pid, setPid]         = useState("");
+  const [sids, setSids]       = useState([]);
+
+  const openNew  = ()=> { setEditing(null); setName(""); setPid(products[0]?.id||""); setSids([]); setOpen(true); };
+  const openEdit = c => { setEditing(c); setName(c.name); setPid(c.productId); setSids([...c.serviceIds]); setOpen(true); };
+  const togSvc   = id=> setSids(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]);
+  const save = () => {
+    if (!name.trim()||!pid) return;
+    editing ? updateCustomer({...editing, name:name.trim(), productId:pid, serviceIds:sids})
+            : addCustomer({name:name.trim(), productId:pid, serviceIds:sids});
+    setOpen(false);
+  };
+
+  return (
+    <div>
+      <PageHeader title="Customers"
+        description="A customer's product defines Standard (free) and Add-on required options. Subscribed services unlock the add-on ones — filtered to what the product offers."
+        action={<Btn onClick={openNew}>＋ Add Customer</Btn>}/>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+        {customers.map(cust => {
+          const product  = products.find(p=>p.id===cust.productId);
+          const custSvcs = services.filter(s=>cust.serviceIds.includes(s.id));
+          const svcEnabled = new Set(custSvcs.flatMap(s=>s.enabledOptions));
+          const std = product?.standardOptions||[];
+          const chg = product?.chargeableOptions||[];
+          const allOpts = [...std, ...chg.filter(id=>!std.includes(id))];
+
+          return (
+            <div key={cust.id} className="card" style={{ background:"#fff", borderRadius:10,
+              border:`1px solid ${C.border}`, padding:18 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:14 }}>
+                <div>
+                  <div style={{ fontWeight:700, fontSize:15 }}>{cust.name}</div>
+                  <div style={{ fontSize:12, color:C.mutedText }}>{product?.name||"Unknown Product"}</div>
+                </div>
+                <div style={{ display:"flex", gap:4 }}>
+                  <Btn variant="ghost" size="sm" onClick={()=>openEdit(cust)}>✏️</Btn>
+                  <Btn variant="danger" size="sm" onClick={()=>deleteCustomer(cust.id)}>🗑</Btn>
+                </div>
+              </div>
+
+              {/* Subscribed services */}
+              <div style={{ marginBottom:14 }}>
+                <SectionLabel>Subscribed Services</SectionLabel>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                  {custSvcs.length===0
+                    ? <span style={{ fontSize:12, color:C.mutedText }}>None — Standard options only</span>
+                    : custSvcs.map(s=>(
+                      <span key={s.id} style={{ display:"inline-flex", alignItems:"center", gap:6,
+                        padding:"5px 10px", borderRadius:6,
+                        background:C.accentLight, border:"1px solid #F5C99A",
+                        fontSize:12, fontWeight:600 }}>
+                        {s.name}
+                        <span style={{ fontFamily:"monospace", fontSize:11, color:C.mutedText, fontWeight:400 }}>({s.code})</span>
+                        <SvcTypeBadge type={s.type}/>
+                      </span>
+                    ))}
+                </div>
+              </div>
+
+              {/* Resolved capabilities — grouped by type */}
+              <SectionLabel>Resolved Capabilities</SectionLabel>
+              {(() => {
+                const renderRow = id => {
+                  const isStd    = std.includes(id);
+                  const isChg    = chg.includes(id) && !isStd;
+                  const isActive = isStd || (isChg && svcEnabled.has(id));
+                  const via = custSvcs.filter(s=>s.enabledOptions.includes(id)).map(s=>s.name).join(", ");
+                  return (
+                    <div key={id} style={{ display:"flex", alignItems:"center", gap:6,
+                      fontSize:12, padding:"4px 0", borderBottom:`1px solid ${C.border}66` }}>
+                      <span style={{ fontSize:13 }}>{isActive?"✅":"❌"}</span>
+                      <span style={{ flex:1, color:isActive?C.text:C.mutedText,
+                        textDecoration:isActive?"none":"line-through" }}>{id}</span>
+                      {isStd && <Pill label="Standard" bg={C.successLight} color={C.success} border={C.successBorder}/>}
+                      {isChg && isActive  && <Pill label={`via ${via}`} bg={C.primaryLight} color={C.primary} border="#BBCFE8"/>}
+                      {isChg && !isActive && <Pill label="Add-on" bg={C.warningLight} color={C.warning} border={C.warningBorder}/>}
+                    </div>
+                  );
+                };
+                const payments = allOpts.filter(id=>optById(id)?.type==="payment");
+                const features = allOpts.filter(id=>optById(id)?.type==="feature");
+                return (
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                    <div>
+                      <div style={{ fontSize:10, fontWeight:700, color:C.mutedText, textTransform:"uppercase",
+                        letterSpacing:"0.06em", marginBottom:4 }}>💳 Payment Types</div>
+                      {payments.length===0
+                        ? <span style={{ fontSize:11, color:C.mutedText }}>None</span>
+                        : payments.map(renderRow)}
+                    </div>
+                    <div>
+                      <div style={{ fontSize:10, fontWeight:700, color:C.mutedText, textTransform:"uppercase",
+                        letterSpacing:"0.06em", marginBottom:4 }}>✨ Product Features</div>
+                      {features.length===0
+                        ? <span style={{ fontSize:11, color:C.mutedText }}>None</span>
+                        : features.map(renderRow)}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          );
+        })}
+      </div>
+
+      <Modal open={open} onClose={()=>setOpen(false)} title={editing?"Edit Customer":"New Customer"}
+        footer={<><Btn variant="outline" onClick={()=>setOpen(false)}>Cancel</Btn>
+                   <Btn onClick={save}>{editing?"Update":"Create"}</Btn></>}>
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:C.textSub, display:"block", marginBottom:5 }}>Customer Name</label>
+            <Inp value={name} onChange={setName} placeholder="e.g. Customer 3"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:C.textSub, display:"block", marginBottom:5 }}>Account Product</label>
+            <SelEl value={pid} onChange={v=>{setPid(v);setSids([]);}}
+              options={products.map(p=>({value:p.id,label:p.name}))}/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:C.textSub, display:"block", marginBottom:4 }}>Subscribe to Services</label>
+            <p style={{ fontSize:11, color:C.mutedText, marginBottom:10 }}>
+              All services are available. Only options marked as Add-on required 🔒 on the customer's product will be unlocked.</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+              {services.map(s => {
+                const product = products.find(p=>p.id===pid);
+                // Preview: how many of this service's options apply to the selected product
+                const applicable = product
+                  ? s.enabledOptions.filter(id=>product.chargeableOptions.includes(id)).length
+                  : 0;
+                const chk = sids.includes(s.id);
+                return (
+                  <button key={s.id} role="checkbox" aria-checked={chk}
+                    onClick={()=>togSvc(s.id)}
+                    onKeyDown={e=>(e.key===" "||e.key==="Enter")&&togSvc(s.id)}
+                    onFocus={e=>e.currentTarget.style.boxShadow=`0 0 0 2px ${C.primary}55`}
+                    onBlur={e=>e.currentTarget.style.boxShadow="none"}
+                    style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
+                      borderRadius:7, textAlign:"left", fontFamily:"inherit", outline:"none",
+                      cursor:"pointer", transition:"background .12s",
+                      background:chk?C.primaryLight+"88":"#F8FAFB",
+                      border:`1px solid ${chk?"#BBCFE8":C.border}` }}>
+                    {/* checkbox */}
+                    <div style={{ width:18, height:18, borderRadius:4, flexShrink:0,
+                      border:`2px solid ${chk?C.primary:"#B8C5D4"}`,
+                      background:chk?C.primary:"#fff",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      pointerEvents:"none", transition:"all .12s" }}>
+                      {chk && <svg width="10" height="8" viewBox="0 0 10 8">
+                        <path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.8" fill="none"
+                          strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>}
+                    </div>
+                    <span style={{ fontWeight:600, fontSize:13 }}>{s.name}</span>
+                    <span style={{ fontFamily:"monospace", fontSize:11, color:C.mutedText }}>({s.code})</span>
+                    <SvcTypeBadge type={s.type}/>
+                    <span style={{ marginLeft:"auto", fontSize:11,
+                      color: applicable>0 ? C.success : C.mutedText, fontWeight:applicable>0?600:400 }}>
+                      {applicable > 0
+                        ? `unlocks ${applicable} option${applicable!==1?"s":""} on this product`
+                        : "no overlap with this product"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// ── README PAGE ───────────────────────────────────────────────────────────────
+function ReadMePage() {
+  const { products, services, customers } = useCatalog();
+
+  const Section = ({ icon, title, children }) => (
+    <div style={{ marginBottom:32 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14,
+        paddingBottom:10, borderBottom:`2px solid ${C.border}` }}>
+        <span style={{ fontSize:18 }}>{icon}</span>
+        <h3 style={{ fontSize:15, fontWeight:700, color:C.text, margin:0 }}>{title}</h3>
+      </div>
+      <div style={{ fontSize:13, color:C.textSub, lineHeight:1.75 }}>{children}</div>
+    </div>
+  );
+
+  const FlowStep = ({ num, title, who, desc, accent }) => (
+    <div style={{ display:"flex", gap:14, marginBottom:16 }}>
+      <div style={{ width:30, height:30, borderRadius:"50%", background:accent, flexShrink:0,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontWeight:800, fontSize:13, color:"#fff", marginTop:2 }}>{num}</div>
+      <div>
+        <div style={{ fontWeight:700, fontSize:13, color:C.text, marginBottom:3 }}>
+          {title}
+          <span style={{ marginLeft:8, fontSize:10, fontWeight:700, color:accent,
+            background:accent+"1A", padding:"1px 7px", borderRadius:4,
+            border:`1px solid ${accent}33` }}>{who}</span>
+        </div>
+        <div style={{ fontSize:12, color:C.mutedText, lineHeight:1.65 }}>{desc}</div>
+      </div>
+    </div>
+  );
+
+  const RoleCard = ({ avatar, role, name, accent, pages, desc }) => (
+    <div style={{ background:"#fff", borderRadius:10, border:`1px solid ${C.border}`,
+      padding:16, display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ width:36, height:36, borderRadius:8, flexShrink:0,
+          background:accent, display:"flex", alignItems:"center", justifyContent:"center",
+          fontWeight:800, fontSize:12, color:"#fff" }}>{avatar}</div>
+        <div>
+          <div style={{ fontWeight:700, fontSize:13, color:C.text }}>{name}</div>
+          <div style={{ fontSize:10, fontWeight:700, color:accent, marginTop:2 }}>{role}</div>
+        </div>
+      </div>
+      <div style={{ fontSize:12, color:C.mutedText, lineHeight:1.6 }}>{desc}</div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+        {pages.map(p => (
+          <span key={p} style={{ fontSize:11, padding:"2px 8px", borderRadius:4,
+            background:accent+"12", color:accent,
+            border:`1px solid ${accent}2E`, fontWeight:600 }}>{p}</span>
+        ))}
+      </div>
+    </div>
+  );
+
+  const heroStyle = {
+    borderRadius:12,
+    padding:"36px 40px",
+    marginBottom:32,
+    background:"linear-gradient(160deg, hsl(235,40%,6%) 0%, hsl(242,42%,9%) 30%, hsl(250,44%,14%) 65%, hsl(256,46%,19%) 100%)",
+    boxShadow:"0 4px 24px rgba(0,0,0,0.18)",
+  };
+
+  const stats = [
+    { label:"Products",  value:products.length },
+    { label:"Services",  value:services.length },
+    { label:"Options",   value:ALL_OPTIONS.length },
+    { label:"Customers", value:customers.length, highlight:true },
+  ];
+
+  return (
+    <div style={{ maxWidth:860, margin:"0 auto" }}>
+
+      <div style={heroStyle}>
+        <div style={{ fontSize:"0.6875rem", fontWeight:700, letterSpacing:"0.12em",
+          textTransform:"uppercase", color:"rgba(200,205,255,0.42)", marginBottom:"0.75rem" }}>
+          POC 3 · BACK OFFICE CONFIGURATION TOOL
+        </div>
+        <h1 style={{ fontSize:"2.125rem", fontWeight:800, color:"#fff",
+          letterSpacing:"-0.03em", lineHeight:1.18, margin:"0 0 0.875rem 0" }}>
+          DBS Digital Banking<br/>Product &amp; Service Catalogue
+        </h1>
+        <p style={{ fontSize:"0.9375rem", color:"rgba(200,205,255,0.52)", lineHeight:1.7,
+          maxWidth:640, margin:"0 0 1.75rem 0" }}>
+          A role-separated back-office tool that governs which payment types and product features
+          are available to each customer — through a structured three-layer model of Master
+          Catalogue, Products, Services, and Customer subscriptions.
+        </p>
+        <div style={{ display:"flex", alignItems:"center", gap:"1.25rem", flexWrap:"wrap" }}>
+          {stats.map(({ label, value, highlight }) => (
+            highlight ? (
+              <div key={label} style={{ padding:"0.35rem 1rem", borderRadius:8,
+                background:"hsla(252,55%,30%,0.55)",
+                border:"1px solid hsla(252,65%,62%,0.30)" }}>
+                <span style={{ fontSize:"0.9375rem", fontWeight:700, color:"#fff" }}>
+                  {value} {label}
+                </span>
+              </div>
+            ) : (
+              <span key={label} style={{ fontSize:"0.9375rem", fontWeight:700,
+                color:"rgba(255,255,255,0.85)" }}>
+                {value} {label}
+              </span>
+            )
+          ))}
+        </div>
+      </div>
+
+      <Section icon="🎯" title="Purpose & Problem Statement">
+        <p style={{ marginBottom:10 }}>
+          Digital banking products — current accounts, premium accounts, savings — each offer a
+          different set of payment types and features. Some are <strong>standard</strong> (included
+          by default), while others are <strong>chargeable add-ons</strong> that must be unlocked
+          via a separately subscribed service.
+        </p>
+        <p style={{ marginBottom:10 }}>
+          The challenge is to give back-office teams a clear, governed way to configure this across
+          the catalogue — from the global master list down to what an individual customer can
+          actually use — without ambiguity about who can change what, and how.
+        </p>
+        <p>
+          This POC introduces a <strong>three-layer configuration model</strong> (Master Catalogue
+          → Product → Customer) with role-based access, making it explicit at each layer what is
+          constrained, what is flexible, and what the downstream impact on customers will be.
+        </p>
+      </Section>
+
+      <Section icon="🏗️" title="Solution Architecture — Three-Layer Configuration Model">
+        <p style={{ marginBottom:18 }}>
+          The solution is structured as a hierarchy of three layers, each controlled by a different
+          role. Changes at a higher layer automatically constrain what is possible at lower layers.
+        </p>
+        {[
+          { num:1, layer:"Master Catalogue", who:"Administrator", color:"hsl(252,55%,30%)",
+            desc:"Defines the global universe of available Payments and Features. The Admin can enable or disable any option globally, and mark options as Add-on Only — meaning they can never appear as a standard inclusion on any product. This is the governance layer." },
+          { num:2, layer:"Product Configuration", who:"Product Manager", color:"hsl(252,55%,38%)",
+            desc:"Within options enabled by the Master Catalogue, the Product Manager decides which are included on each product. Add-on-only options (🔒) are automatically classified as chargeable when enabled — no manual classification needed." },
+          { num:3, layer:"Service Configuration", who:"Service Manager", color:"hsl(220,55%,42%)",
+            desc:"Services are product-agnostic bundles that unlock specific options. The product determines which of those options are chargeable — making services fully reusable across the catalogue." },
+          { num:4, layer:"Customer Assignment", who:"Customer Ops", color:C.success,
+            desc:"Customer Ops assigns a product and subscribes services. The system resolves the full capability set live — standard product options always on; chargeable options active only if a service covers them." },
+        ].map(({ num, layer, who, color, desc }) => (
+          <div key={num} style={{ display:"flex", gap:14, marginBottom:18,
+            paddingBottom:18, borderBottom:num<4?`1px solid ${C.border}`:"none" }}>
+            <div style={{ width:32, height:32, borderRadius:8, background:color, flexShrink:0,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontWeight:800, fontSize:14, color:"#fff" }}>{num}</div>
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+                <span style={{ fontWeight:700, fontSize:13, color:C.text }}>{layer}</span>
+                <span style={{ fontSize:10, fontWeight:700, color:"#fff", background:color,
+                  padding:"1px 8px", borderRadius:4 }}>{who}</span>
+              </div>
+              <p style={{ fontSize:12, color:C.mutedText, lineHeight:1.65, margin:0 }}>{desc}</p>
+            </div>
+          </div>
+        ))}
+      </Section>
+
+      <Section icon="🔄" title="End-to-End Configuration Flow">
+        <FlowStep num={1} title="Admin enables the option globally"
+          who="Master Catalogue" accent="hsl(252,55%,30%)"
+          desc="The Admin ensures the option is enabled in the Master Catalogue. If it should never be free (e.g. SEPA EUR Transfer), the Admin marks it as Add-on Only. This flag is immutable from lower layers."/>
+        <FlowStep num={2} title="Product Manager enables it on a product"
+          who="Product Configuration" accent="hsl(252,55%,38%)"
+          desc="The Product Manager ticks the option on. Add-on-only options (🔒) automatically land in the chargeable bucket (amber). Standard options are shown in green. No manual classification needed."/>
+        <FlowStep num={3} title="Service Manager maps it to a service"
+          who="Service Configuration" accent="hsl(220,55%,42%)"
+          desc="The Service Manager selects which service bundle enables this option. The product coverage panel shows in real time how many products will be affected."/>
+        <FlowStep num={4} title="Customer subscribes to the service"
+          who="Customer Operations" accent={C.success}
+          desc="Customer Ops assigns a product and subscribes services. Standard options are always on; chargeable options activate only if a subscribed service covers them."/>
+      </Section>
+
+      <Section icon="💡" title="Key Concepts & Design Decisions">
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          {[
+            { icon:"🔒", title:"Add-on Only flag",
+              text:"Set at the Master layer, this flag means the option can only ever be chargeable — never standard. Products don't classify it; the system does automatically." },
+            { icon:"🔗", title:"Product-agnostic services",
+              text:"Services are not tied to a specific product. They define which options they can unlock globally. The product determines which of those are chargeable." },
+            { icon:"⚙️", title:"Two-step unlock",
+              text:"An option enabled by a service does NOT automatically give customer access. It must also be marked chargeable on the customer's product. Both conditions must be true." },
+            { icon:"👥", title:"Role-based access",
+              text:"Admins see everything. Product Managers cannot touch the Master layer. Service Managers focus on coverage. Customer Ops only assigns — cannot change catalogue config." },
+            { icon:"📊", title:"Product coverage insight",
+              text:"When configuring a service, the Service Manager sees a live impact panel: products that will benefit, those with the option already as standard, and those with no overlap." },
+            { icon:"🔁", title:"Downstream resolution",
+              text:"Customer capability is resolved dynamically — standard options always on; chargeable options activate only if a subscribed service covers them." },
+          ].map(({ icon, title, text }) => (
+            <div key={title} style={{ background:"#fff", borderRadius:10,
+              border:`1px solid ${C.border}`, padding:"14px 16px" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                <span style={{ fontSize:15 }}>{icon}</span>
+                <span style={{ fontWeight:700, fontSize:13, color:C.text }}>{title}</span>
+              </div>
+              <p style={{ fontSize:12, color:C.mutedText, lineHeight:1.65, margin:0 }}>{text}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section icon="👤" title="Roles & Access">
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <RoleCard avatar="AD" role="Administrator" name="Admin"
+            accent="hsl(252,55%,30%)"
+            pages={["Overview","Master Catalogue","Products","Services","Customers"]}
+            desc="Full system access. Owns the Master Catalogue layer — global governance of which options exist and which are add-on only."/>
+          <RoleCard avatar="AM" role="Product Manager" name="Alex Morgan"
+            accent="hsl(252,55%,38%)"
+            pages={["Overview","Products"]}
+            desc="Configures the product catalogue within constraints set by the Master Catalogue. Cannot override add-on-only designations."/>
+          <RoleCard avatar="JL" role="Service Manager" name="Jordan Lee"
+            accent="hsl(220,55%,42%)"
+            pages={["Overview","Services"]}
+            desc="Manages global service bundles. Defines which options each service can unlock and monitors product coverage impact."/>
+          <RoleCard avatar="SC" role="Customer Operations" name="Sam Clarke"
+            accent={C.success}
+            pages={["Overview","Customers"]}
+            desc="Manages customer accounts — assigns products and services. Views resolved capabilities but cannot modify catalogue configuration."/>
+        </div>
+      </Section>
+
+      <Section icon="🎨" title="Visual Language & Status Indicators">
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {[
+            { bg:C.successLight, border:C.successBorder, icon:"✓", iconColor:C.success,
+              label:"Standard — Enabled & free",
+              desc:"Option is active on the product at no extra charge." },
+            { bg:C.warningLight, border:C.warningBorder, icon:"✓", iconColor:C.warning,
+              label:"Add-on — Enabled as chargeable",
+              desc:"Enabled but requires a service subscription to unlock. The 🔒 badge confirms its add-on nature." },
+            { bg:"hsl(230,18%,97%)", border:C.border, icon:"", iconColor:C.border,
+              label:"Disabled — Not offered",
+              desc:"Not configured on this product. Customers cannot access it regardless of service subscriptions." },
+            { bg:C.primaryLight, border:"hsla(252,60%,36%,0.3)", icon:"✓", iconColor:C.primary,
+              label:"Unlocked via service (Customer view)",
+              desc:"A chargeable option unlocked because the customer subscribes to a covering service." },
+          ].map(({ bg, border, icon, iconColor, label, desc }) => (
+            <div key={label} style={{ display:"flex", alignItems:"center", gap:14,
+              background:"#fff", borderRadius:8, border:`1px solid ${C.border}`,
+              padding:"10px 14px" }}>
+              <div style={{ width:24, height:24, borderRadius:5, flexShrink:0, background:bg,
+                border:`2px solid ${border}`, display:"flex", alignItems:"center",
+                justifyContent:"center", fontSize:12, fontWeight:800, color:iconColor }}>{icon}</div>
+              <div>
+                <div style={{ fontWeight:600, fontSize:12, color:C.text }}>{label}</div>
+                <div style={{ fontSize:11, color:C.mutedText, marginTop:2 }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section icon="📋" title="POC Scope & Assumptions">
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+          <div>
+            <div style={{ fontSize:11, fontWeight:700, color:C.success, textTransform:"uppercase",
+              letterSpacing:"0.06em", marginBottom:8 }}>✅ In Scope</div>
+            {["Master Catalogue governance with add-on-only designation",
+              "Product configuration — two-state enable/disable per option",
+              "Automatic add-on classification driven by master flags",
+              "Global (product-agnostic) service configuration",
+              "Live product coverage impact analysis on services",
+              "Customer capability resolution — standard + service-unlocked",
+              "Role-based access: four personas with scoped navigation",
+              "Full CRUD for products, services, and customers",
+            ].map(t => (
+              <div key={t} style={{ display:"flex", gap:8, fontSize:12,
+                color:C.textSub, marginBottom:6, lineHeight:1.5 }}>
+                <span style={{ color:C.success, flexShrink:0 }}>✓</span>{t}
+              </div>
+            ))}
+          </div>
+          <div>
+            <div style={{ fontSize:11, fontWeight:700, color:C.mutedText, textTransform:"uppercase",
+              letterSpacing:"0.06em", marginBottom:8 }}>⬜ Out of Scope / Next Steps</div>
+            {["Pricing rules and fee structures per add-on",
+              "Approval workflows for catalogue changes",
+              "Audit trail and change history",
+              "Multi-currency or region-specific variants",
+              "API integration with core banking systems",
+              "Customer self-service portal (front-office)",
+              "Bulk import / export of catalogue configuration",
+              "Automated conflict resolution across layers",
+            ].map(t => (
+              <div key={t} style={{ display:"flex", gap:8, fontSize:12,
+                color:C.mutedText, marginBottom:6, lineHeight:1.5 }}>
+                <span style={{ flexShrink:0 }}>○</span>{t}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <div style={{ textAlign:"center", padding:"20px 0 8px",
+        borderTop:`1px solid ${C.border}`, color:C.mutedText, fontSize:11 }}>
+        DBS Platform · Product &amp; Service Catalogue · POC 3 (Master Config) · Demo Environment
+      </div>
+
+    </div>
+  );
+}
+
+
+// ── PERSONAS ──────────────────────────────────────────────────────────────────
+const PERSONAS = {
+  admin: {
+    id:"admin", name:"Admin", role:"Administrator", avatar:"AD",
+    description: "Full access to all catalogue configuration — including Master Catalogue, products, services, customers, and system overview.",
+    nav: [
+      { id:"readme",    icon:"📖", label:"Read Me"          },
+      { id:"overview",  icon:"📊", label:"Overview"         },
+      { id:"master",    icon:"🔐", label:"Master Catalogue" },
+      { id:"products",  icon:"📦", label:"Products"         },
+      { id:"services",  icon:"🔧", label:"Services"         },
+      { id:"customers", icon:"👥", label:"Customers"        },
+    ],
+    defaultPage: "readme",
+  },
+  product_manager: {
+    id:"product_manager", name:"Alex Morgan", role:"Product Manager", avatar:"AM",
+    description: "Configures products, defines which payment types and features are Standard or Add-on required.",
+    nav: [
+      { id:"readme",   icon:"📖", label:"Read Me"  },
+      { id:"overview", icon:"📊", label:"Overview" },
+      { id:"products", icon:"📦", label:"Products" },
+    ],
+    defaultPage: "readme",
+  },
+  service_manager: {
+    id:"service_manager", name:"Jordan Lee", role:"Service Manager", avatar:"JL",
+    description: "Configures global services, defines which options each service enables, and monitors product coverage impact.",
+    nav: [
+      { id:"readme",   icon:"📖", label:"Read Me"  },
+      { id:"overview", icon:"📊", label:"Overview" },
+      { id:"services", icon:"🔧", label:"Services" },
+    ],
+    defaultPage: "readme",
+  },
+  customer_ops: {
+    id:"customer_ops", name:"Sam Clarke", role:"Customer Operations", avatar:"SC",
+    description: "Manages customer accounts — assigns products, subscribes and unsubscribes services, and reviews each customer's resolved capabilities.",
+    nav: [
+      { id:"readme",    icon:"📖", label:"Read Me"   },
+      { id:"overview",  icon:"📊", label:"Overview"  },
+      { id:"customers", icon:"👥", label:"Customers" },
+    ],
+    defaultPage: "readme",
+  },
+};
+
+// ── LOGIN SCREEN ──────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  return (
+    <div className="persona-screen">
+      <div className="persona-logo">
+        <div className="persona-logo-title">DBS Platform</div>
+        <div className="persona-logo-sub">Product & Service Catalogue — Back Office</div>
+        <div className="persona-logo-line"/>
+        <div style={{ fontSize:"0.875rem", color:"hsl(252,85%,78%)", fontWeight:600,
+          marginTop:"0.75rem", letterSpacing:"0.01em" }}>
+          Chargeable Service - Poc 3 (Master Config)
+        </div>
+      </div>
+
+      <div className="persona-role-lbl">Select your role to continue</div>
+
+      <div className="persona-cards">
+        {Object.values(PERSONAS).map(p => (
+          <div key={p.id} className="persona-card" onClick={() => onLogin(p.id)}>
+            <div className="persona-card-top">
+              <div className="persona-avatar">{p.avatar}</div>
+              <div>
+                <div className="persona-name">{p.name}</div>
+                <span className="persona-role-badge">{p.role}</span>
+              </div>
+            </div>
+            <div className="persona-desc">{p.description}</div>
+            <div className="persona-pages">
+              {p.nav.map(n => (
+                <span key={n.id} className="persona-page-chip">
+                  {n.icon} {n.label}
+                </span>
+              ))}
+            </div>
+            <button className="persona-signin">Sign in as {p.role} →</button>
+          </div>
+        ))}
+      </div>
+
+      <div className="persona-footer">POC 1.1 · Demo Environment · v1.1</div>
+    </div>
+  );
+}
+
+// ── APP SHELL ─────────────────────────────────────────────────────────────────
+function App() {
+  const [personaId, setPersonaId] = useState(null);
+  const [page, setPage]           = useState(null);
+
+  const login = id => {
+    setPersonaId(id);
+    setPage(PERSONAS[id].defaultPage);
+  };
+
+  const logout = () => { setPersonaId(null); setPage(null); };
+
+  if (!personaId) return (
+    <CatalogProvider>
+      <LoginScreen onLogin={login}/>
+    </CatalogProvider>
+  );
+
+  const persona = PERSONAS[personaId];
+
+  return (
+    <CatalogProvider>
+      <div style={{ display:"flex", minHeight:"100vh", fontSize:14, fontFamily:"'Inter',sans-serif" }}>
+
+        {/* Sidebar */}
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <div className="sidebar-title">DBS Platform</div>
+            <div className="sidebar-sub">Product & Service Catalog</div>
+          </div>
+
+          {/* Persona badge */}
+          <div className="sidebar-user">
+            <div className="sidebar-avatar">{persona.avatar}</div>
+            <div>
+              <div className="sidebar-user-name">{persona.name}</div>
+              <div className="sidebar-user-role">{persona.role}</div>
+            </div>
+          </div>
+
+          {/* Nav */}
+          <nav className="sidebar-nav">
+            {persona.nav.map(n => (
+              <button key={n.id} className={`nav-item${page===n.id?" active":""}`}
+                onClick={() => setPage(n.id)}>
+                <span style={{fontSize:15}}>{n.icon}</span>{n.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Footer */}
+          <div className="sidebar-footer">
+            <button className="nav-item" onClick={logout}
+              style={{color:"rgba(200,205,255,0.35)", fontSize:"0.75rem", marginBottom:"0.25rem"}}>
+              <span>⏏</span> Sign out
+            </button>
+            <div>v1.1 · POC 1.1 · Back Office</div>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="main">
+          {page==="readme"    && <ReadMePage/>}
+          {page==="overview"  && <OverviewPage/>}
+          {page==="master"    && <MasterCataloguePage/>}
+          {page==="products"  && <ProductsPage/>}
+          {page==="services"  && <ServicesPage/>}
+          {page==="customers" && <CustomersPage/>}
+        </main>
+      </div>
+    </CatalogProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

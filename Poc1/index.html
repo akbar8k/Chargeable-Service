@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DBS Platform — Product & Service Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: hsl(230,20%,97%); --fg: hsl(230,20%,10%);
+  --card: hsl(0,0%,100%); --primary: hsl(252,65%,38%); --primary-fg: hsl(0,0%,100%);
+  --muted: hsl(230,18%,94%); --muted-fg: hsl(225,14%,48%);
+  --accent: hsl(28,90%,55%); --accent-fg: hsl(0,0%,100%);
+  --destructive: hsl(0,72%,51%);
+  --border: hsl(225,20%,88%);
+  --success: hsl(145,50%,38%); --success-fg: hsl(0,0%,100%);
+  --warning: hsl(38,92%,50%); --warning-fg: hsl(0,0%,100%);
+  --info: hsl(252,65%,45%); --info-fg: hsl(0,0%,100%);
+  --sidebar-bg: hsl(240,30%,8%);
+  --sidebar-active: hsl(248,40%,22%);
+  --sidebar-fg: hsl(230,25%,80%);
+  --sidebar-primary: hsl(252,70%,70%);
+  --sidebar-border: hsl(240,22%,16%);
+  --radius: 0.5rem;
+  font-family: 'Inter', sans-serif;
+}
+body { background: var(--bg); color: var(--fg); min-height: 100vh; }
+#root { min-height: 100vh; }
+
+/* Sidebar — near-black navy top fading to deep indigo — matches bank reference */
+.sidebar {
+  width: 15rem; min-height: 100vh;
+  background: linear-gradient(180deg,
+    hsl(235,40%,6%)  0%,
+    hsl(242,42%,9%)  30%,
+    hsl(250,44%,14%) 65%,
+    hsl(256,46%,19%) 100%
+  );
+  color: var(--sidebar-fg); display: flex; flex-direction: column;
+  border-right: 1px solid hsl(240,28%,11%); flex-shrink: 0;
+}
+.sidebar-header { padding: 1.25rem; border-bottom: 1px solid hsl(240,28%,11%); }
+.sidebar-title { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+.sidebar-sub { font-size: 0.75rem; color: rgba(200,205,255,0.42); margin-top: 0.125rem; }
+.sidebar-nav { flex: 1; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.125rem; }
+.nav-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.625rem 0.75rem; border-radius: 0.5rem;
+  font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  color: rgba(195,200,255,0.55); border: none; background: none;
+  width: 100%; text-align: left; transition: background 0.15s, color 0.15s;
+}
+.nav-item:hover { background: hsla(250,50%,100%,0.06); color: rgba(215,218,255,0.85); }
+.nav-item.active {
+  background: hsla(252,65%,62%,0.18);
+  color: hsl(252,85%,78%);
+  font-weight: 600;
+}
+.sidebar-footer { padding: 1rem; border-top: 1px solid hsl(240,28%,11%); font-size: 0.75rem; color: rgba(200,205,255,0.25); }
+.main { flex: 1; padding: 1.5rem 2rem; overflow: auto; }
+
+/* Page header */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
+.page-title { font-size: 1.5rem; font-weight: 700; }
+.page-desc { font-size: 0.875rem; color: var(--muted-fg); margin-top: 0.25rem; max-width: 680px; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform:none; } }
+.card-header-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+.btn-actions { display: flex; gap: 0.25rem; opacity: 0; transition: opacity 0.15s; }
+.card:hover .btn-actions { opacity: 1; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: opacity 0.15s, background 0.15s; font-family: inherit; }
+.btn-primary { background: hsl(252,55%,30%); color: #fff; }
+.btn-primary:hover { background: hsl(252,55%,26%); }
+.btn-outline { background: transparent; border-color: hsl(252,35%,72%); color: hsl(252,50%,36%); }
+.btn-outline:hover { background: hsla(252,55%,30%,0.06); }
+.btn-ghost { background: transparent; color: var(--fg); border: none; padding: 0.375rem; border-radius: 0.375rem; cursor: pointer; display: inline-flex; align-items: center; font-family: inherit; }
+.btn-ghost:hover { background: var(--muted); }
+.btn-danger-ghost { background: transparent; color: var(--destructive); border: none; padding: 0.375rem; border-radius: 0.375rem; cursor: pointer; display: inline-flex; align-items: center; font-family: inherit; }
+.btn-danger-ghost:hover { background: hsla(0,72%,51%,0.08); }
+
+/* Accordion */
+.accordion-item { border-bottom: 1px solid var(--border); }
+.accordion-item:last-child { border-bottom: none; }
+.accordion-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.875rem 0; font-size: 0.9375rem; font-weight: 600; background: none; border: none; cursor: pointer; color: var(--fg); text-align: left; font-family: inherit; }
+.accordion-trigger .chevron { transition: transform 0.2s; font-size: 0.75rem; color: var(--muted-fg); }
+.accordion-trigger.open .chevron { transform: rotate(180deg); }
+.accordion-content.closed { display: none; }
+.accordion-inner { padding-bottom: 1rem; }
+
+/* Checkbox rows (dialog / services) */
+.cb-wrap { display: flex; align-items: center; gap: 0.625rem; }
+.cb-wrap input[type=checkbox] { width: 1rem; height: 1rem; accent-color: hsl(252,60%,36%); cursor: pointer; flex-shrink: 0; }
+.cb-wrap label { font-size: 0.875rem; cursor: pointer; user-select: none; line-height: 1.4; }
+.cb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem 1.5rem; }
+@media (max-width: 900px) { .cb-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 600px) { .cb-grid { grid-template-columns: 1fr; } }
+
+/* Product item cards — locked vs disabled states */
+.item-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.375rem; }
+@media (max-width: 1000px) { .item-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 600px)  { .item-grid { grid-template-columns: 1fr; } }
+
+.item-card {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border);
+  cursor: pointer; user-select: none; transition: background 0.1s;
+  background: #fff;
+}
+.item-card.locked {
+  border-color: hsl(38,75%,74%);
+  background: hsl(38,90%,96%);
+}
+.item-card.locked:hover  { background: hsl(38,80%,92%); }
+.item-card.disabled { background: hsl(225,18%,97%); border-color: hsl(225,18%,88%); }
+.item-card.disabled:hover { background: hsl(225,18%,94%); }
+
+.item-lock-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.item-checkbox {
+  width: 1rem; height: 1rem; border-radius: 0.2rem; flex-shrink: 0;
+  border: 1.5px solid hsl(225,18%,72%); background: #fff;
+}
+.item-label { font-size: 0.8125rem; font-weight: 500; line-height: 1.3; flex: 1; }
+.item-card.locked   .item-label { color: hsl(35,45%,30%); font-weight: 600; }
+.item-card.disabled .item-label { color: hsl(225,14%,52%); font-weight: 400; }
+
+/* Product/Service card collapsible header */
+.prod-card-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  cursor: pointer; user-select: none;
+  transition: background 0.12s;
+}
+.prod-card-hdr:hover { background: hsl(230,18%,98%); }
+.prod-card-hdr-left { display: flex; align-items: center; gap: 0.625rem; flex: 1; min-width: 0; }
+.prod-card-name { font-size: 1.0625rem; font-weight: 700; }
+.prod-card-counts { font-size: 0.8125rem; font-weight: 500; margin-left: 0.5rem; }
+.count-std { color: var(--success); }
+.count-addon { color: var(--accent); }
+.count-sep { color: var(--muted-fg); margin: 0 0.25rem; }
+.prod-card-chevron { color: var(--muted-fg); transition: transform 0.2s; flex-shrink: 0; }
+.prod-card-chevron.open { transform: rotate(180deg); }
+.prod-card-body { border-top: 1px solid var(--border); }
+
+/* Product section headers */
+.prod-section-hdr {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted-fg); padding: 1rem 0 0.625rem;
+}
+.prod-section-hdr:first-child { padding-top: 0.75rem; }
+
+/* Services covering band at bottom of product card */
+.prod-svc-band {
+  border-top: 1px solid var(--border); padding: 0.75rem 1.25rem;
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+}
+.prod-svc-band-lbl {
+  font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted-fg); white-space: nowrap; display: flex; align-items: center; gap: 0.375rem;
+}
+.prod-svc-chip {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.25rem 0.625rem; border-radius: 0.375rem;
+  border: 1px solid var(--border); background: var(--muted);
+  font-size: 0.8125rem; font-weight: 600;
+}
+.prod-svc-chip .chip-code { font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--muted-fg); }
+
+/* Resolved rows in customer view */
+.resolved-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; padding: 0.25rem 0; }
+.resolved-row .label-text { flex: 1; }
+.resolved-row.active .label-text { color: var(--fg); }
+.resolved-row.inactive .label-text { text-decoration: line-through; color: var(--muted-fg); font-size: 0.8125rem; }
+.icon-check { color: var(--success); display: inline-flex; }
+.icon-x { color: var(--destructive); display: inline-flex; }
+.tag-via { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.6875rem; font-weight: 700; background: hsl(252,60%,36%); color: #fff; }
+
+/* Subscribed services band */
+.svc-band { background: hsla(252,60%,36%,0.06); border: 1px solid hsla(252,60%,36%,0.20); border-radius: 0.375rem; padding: 0.5rem 0.75rem; margin-bottom: 1rem; }
+.svc-band-label { font-size: 0.6875rem; font-weight: 600; color: hsl(252,55%,36%); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.375rem; }
+.svc-chips { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+.svc-chip { padding: 0.25rem 0.625rem; border-radius: 0.375rem; background: hsla(252,60%,36%,0.10); border: 1px solid hsla(252,60%,36%,0.22); font-size: 0.8125rem; font-weight: 500; }
+.svc-chip .code { font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--muted-fg); }
+
+/* No-service warning */
+.no-svc-warning { background: hsla(38,92%,50%,0.08); border: 1px solid hsla(38,92%,50%,0.3); border-radius: 0.375rem; padding: 0.625rem 0.875rem; font-size: 0.8125rem; color: hsl(30,80%,35%); margin-bottom: 1rem; }
+
+/* Dialog */
+.dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; animation: fadeOverlay 0.15s ease; }
+@keyframes fadeOverlay { from { opacity:0; } to { opacity:1; } }
+.dialog-box { background: var(--card); border-radius: calc(var(--radius)*1.5); width: 100%; max-width: 38rem; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.2s ease-out; }
+.dialog-box.wide { max-width: 44rem; }
+@keyframes slideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform:none; } }
+.dialog-header { padding: 1.25rem 1.5rem 0; }
+.dialog-title { font-size: 1.125rem; font-weight: 700; }
+.dialog-body { padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.dialog-footer { padding: 0.75rem 1.5rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* Form */
+.form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+.form-label { font-size: 0.875rem; font-weight: 500; }
+.form-label-lg { font-size: 0.9375rem; font-weight: 600; }
+.form-input { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.875rem; background: var(--card); color: var(--fg); width: 100%; font-family: inherit; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.form-input:focus { border-color: hsl(252,60%,36%); box-shadow: 0 0 0 3px hsla(252,60%,36%,0.12); }
+.form-input.mono { font-family: 'JetBrains Mono', monospace; }
+.select-input { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.875rem; background: var(--card); color: var(--fg); width: 100%; font-family: inherit; outline: none; cursor: pointer; }
+.grid-cols-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.75rem; }
+
+/* Stat grid */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+@media (max-width: 700px) { .stat-grid { grid-template-columns: repeat(2,1fr); } }
+.stat-card { display: flex; align-items: center; gap: 1rem; padding: 1.125rem; }
+.stat-icon { width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.stat-val { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+.stat-lbl { font-size: 0.6875rem; color: var(--muted-fg); margin-top: 0.125rem; }
+
+/* Overview layout */
+.ov-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+@media (max-width: 900px) { .ov-grid { grid-template-columns: 1fr; } }
+.ov-full { grid-column: 1/-1; }
+.ov-item { padding: 0.75rem; border-radius: 0.5rem; background: var(--muted); margin-bottom: 0.625rem; }
+.ov-item:last-child { margin-bottom: 0; }
+.ov-item-name { font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; }
+.ov-section-lbl { font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-fg); margin-bottom: 0.375rem; margin-top: 0.5rem; }
+.ov-section-lbl:first-of-type { margin-top: 0; }
+.badges-wrap { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+.feat-badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 0.25rem; font-size: 0.6875rem; font-weight: 600; white-space: nowrap; }
+
+/* ── Product Coverage panel (Services page) ── */
+.coverage-panel {
+  border: 1px solid var(--border); border-radius: 0.5rem;
+  margin: 0 1.5rem 1.25rem; overflow: hidden;
+}
+.coverage-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.625rem 1rem; background: var(--muted);
+  font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted-fg); border-bottom: 1px solid var(--border);
+}
+.coverage-summary {
+  padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+}
+.coverage-summary-title {
+  font-size: 0.9375rem; font-weight: 700; color: var(--success); margin-bottom: 0.125rem;
+}
+.coverage-summary-sub { font-size: 0.8125rem; color: var(--muted-fg); }
+.coverage-stats {
+  display: flex; border-bottom: 1px solid var(--border);
+}
+.coverage-stat {
+  flex: 1; padding: 0.75rem 1rem; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.coverage-stat:last-child { border-right: none; }
+.coverage-stat-val { font-size: 1.5rem; font-weight: 700; line-height: 1; margin-bottom: 0.125rem; }
+.coverage-stat-lbl { font-size: 0.75rem; color: var(--muted-fg); }
+.coverage-stat.unlock .coverage-stat-val { color: var(--fg); }
+.coverage-stat.nooverlap .coverage-stat-val { color: var(--muted-fg); }
+.coverage-info {
+  padding: 0.75rem 1rem; display: flex; gap: 0.625rem;
+  font-size: 0.8rem; color: var(--muted-fg); line-height: 1.5;
+  border-bottom: 1px solid var(--border);
+}
+.coverage-info-icon { flex-shrink: 0; margin-top: 0.05rem; color: hsl(252,50%,42%); }
+.coverage-info strong { color: var(--fg); }
+.coverage-toggle {
+  padding: 0.625rem 1rem; display: flex; align-items: center; gap: 0.375rem;
+  font-size: 0.8125rem; font-weight: 600; color: hsl(252,55%,36%);
+  background: none; border: none; cursor: pointer; width: 100%; font-family: inherit;
+}
+.coverage-toggle:hover { background: var(--muted); }
+.coverage-detail { border-top: 1px solid var(--border); padding: 0.75rem 1rem; }
+.coverage-detail-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.375rem 0.5rem; border-radius: 0.375rem; margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+}
+.coverage-detail-row:last-child { margin-bottom: 0; }
+.coverage-detail-row.unlock-row { background: hsla(145,50%,42%,0.06); }
+.coverage-detail-row.already-row { background: hsla(28,90%,55%,0.06); }
+.coverage-detail-row.none-row { background: hsla(225,16%,47%,0.06); }
+.cov-tag { font-size: 0.6875rem; font-weight: 700; padding: 0.125rem 0.5rem; border-radius: 999px; white-space: nowrap; }
+.cov-tag-unlock { background: hsla(145,50%,42%,0.15); color: var(--success); }
+.cov-tag-already { background: hsla(28,90%,55%,0.15); color: var(--accent); }
+.cov-tag-none    { background: hsla(225,16%,47%,0.15); color: var(--muted-fg); }
+
+/* ── Persona login screen ── */
+.persona-screen {
+  min-height: 100vh;
+  background: linear-gradient(160deg,
+    hsl(235,40%,6%)  0%,
+    hsl(242,42%,9%)  35%,
+    hsl(250,44%,14%) 70%,
+    hsl(256,46%,19%) 100%
+  );
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+.persona-logo { text-align: center; margin-bottom: 2.5rem; }
+.persona-logo-title {
+  font-size: 2.25rem; font-weight: 800; color: #fff; letter-spacing: -0.03em; margin-bottom: 0.25rem;
+}
+.persona-logo-sub { font-size: 1rem; color: hsl(250,25%,70%); }
+.persona-logo-line {
+  width: 2.5rem; height: 3px; background: hsl(252,55%,50%); border-radius: 2px;
+  margin: 0.75rem auto 0;
+}
+.persona-role-lbl {
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: hsl(250,20%,60%); margin-bottom: 1.25rem; text-align: center;
+}
+.persona-cards {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 1.25rem;
+  width: 100%; max-width: 1060px;
+}
+@media (max-width: 900px) { .persona-cards { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 500px) { .persona-cards { grid-template-columns: 1fr; } }
+.persona-card {
+  background: hsla(245,30%,20%,0.85); border: 1px solid hsl(245,25%,30%);
+  border-radius: 0.875rem; padding: 1.5rem; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex; flex-direction: column; gap: 0.875rem;
+  backdrop-filter: blur(6px);
+}
+.persona-card:hover { border-color: hsl(252,55%,50%); background: hsla(248,35%,24%,0.9); }
+.persona-card.selected {
+  border-color: hsl(252,55%,50%); border-width: 2px;
+  background: hsla(252,60%,18%,0.9);
+}
+.persona-card-top { display: flex; align-items: flex-start; gap: 0.875rem; }
+.persona-avatar {
+  width: 2.75rem; height: 2.75rem; border-radius: 0.5rem; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.875rem; font-weight: 800; color: #fff; letter-spacing: 0.02em;
+}
+.persona-name { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+.persona-role-badge {
+  display: inline-block; padding: 0.15rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.6875rem; font-weight: 700;
+}
+.persona-desc { font-size: 0.8125rem; color: hsl(245,20%,68%); line-height: 1.55; }
+.persona-pages { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.persona-page-chip {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem 0.625rem; border-radius: 0.375rem;
+  background: hsl(245,28%,28%); border: 1px solid hsl(245,25%,36%);
+  font-size: 0.75rem; font-weight: 500; color: hsl(245,20%,76%);
+}
+.persona-signin {
+  font-size: 0.8125rem; font-weight: 600; color: hsl(252,55%,60%);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; gap: 0.25rem; padding: 0; margin-top: 0.25rem;
+  text-align: left;
+}
+.persona-signin:hover { color: hsl(252,55%,68%); }
+.persona-footer { margin-top: 2rem; font-size: 0.75rem; color: hsl(245,20%,45%); text-align: center; }
+.service-header-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.5rem; background: hsla(252,60%,36%,0.12); color: hsl(252,55%,38%); display: flex; align-items: center; justify-content: center; font-size: 0.8125rem; font-weight: 700; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, createContext, useContext } = React;
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+
+const ALL_PAYMENT_TYPES = [
+  "SEPA EUR TRANSFER","P2P Transfer ETB","Local Transfer France","Local Transfer Ethiopia",
+  "Local Transfer Algeria","Internal Transfer EUR","Internal Transfer ETB","Internal Transfer DZD",
+  "One Off","SEPA Transfer France","Internal Transfer ARS V 5","P2P Transfer EUR",
+];
+const ALL_PRODUCT_FEATURES = [
+  "View Statement","Change Account Name","Savings goal","Order chequebook","Download Proof Of Account",
+];
+
+// Products: simple enabled lists
+const INITIAL_PRODUCTS = [
+  { id:"prod-1", name:"Basic Current Account",
+    paymentTypes:["P2P Transfer ETB","Local Transfer France","Local Transfer Algeria","Internal Transfer DZD"],
+    productFeatures:["View Statement","Change Account Name"] },
+  { id:"prod-2", name:"Premium Current Account",
+    paymentTypes:["SEPA EUR TRANSFER","Local Transfer France","Internal Transfer EUR","SEPA Transfer France","P2P Transfer EUR"],
+    productFeatures:["View Statement","Change Account Name","Savings goal","Order chequebook","Download Proof Of Account"] },
+];
+
+// Services: global — not tied to a specific product
+// isDefault=true marks the service automatically assigned on onboarding
+const INITIAL_SERVICES = [
+  { id:"svc-0", name:"Base1", code:"B0", isDefault:true,
+    paymentTypes:["Local Transfer Ethiopia","Local Transfer Algeria","Internal Transfer EUR","Internal Transfer ETB","Internal Transfer DZD","One Off","Internal Transfer ARS V 5"],
+    productFeatures:["View Statement","Change Account Name"] },
+  { id:"svc-1", name:"S1", code:"A1", isDefault:false,
+    paymentTypes:["Local Transfer France","Internal Transfer EUR"],
+    productFeatures:["View Statement","Order chequebook"] },
+  { id:"svc-2", name:"S2", code:"A2", isDefault:false,
+    paymentTypes:["P2P Transfer ETB","Internal Transfer DZD"],
+    productFeatures:["Change Account Name","Download Proof Of Account"] },
+  { id:"svc-3", name:"S3", code:"A3", isDefault:false,
+    paymentTypes:["SEPA EUR TRANSFER","P2P Transfer EUR"],
+    productFeatures:["Savings goal","Order chequebook"] },
+];
+
+const INITIAL_CUSTOMERS = [
+  { id:"cust-1", name:"Customer 1", productId:"prod-1", serviceIds:["svc-0","svc-1"] },
+  { id:"cust-2", name:"Customer 2", productId:"prod-2", serviceIds:["svc-0","svc-2"] },
+];
+
+// ─── CONTEXT ──────────────────────────────────────────────────────────────────
+
+const CatalogContext = createContext(null);
+let idCounter = 100;
+const genId = p => `${p}-${++idCounter}`;
+
+function CatalogProvider({ children }) {
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [services, setServices] = useState(INITIAL_SERVICES);
+  const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
+  const addProduct    = useCallback(p => setProducts(prev=>[...prev,{...p,id:genId("prod")}]),[]);
+  const updateProduct = useCallback(p => setProducts(prev=>prev.map(x=>x.id===p.id?p:x)),[]);
+  const deleteProduct = useCallback(id=> setProducts(prev=>prev.filter(x=>x.id!==id)),[]);
+  const addService    = useCallback(s => setServices(prev=>[...prev,{...s,id:genId("svc")}]),[]);
+  const updateService = useCallback(s => setServices(prev=>prev.map(x=>x.id===s.id?s:x)),[]);
+  const deleteService = useCallback(id=> setServices(prev=>prev.filter(x=>x.id!==id)),[]);
+  const addCustomer    = useCallback(c => setCustomers(prev=>[...prev,{...c,id:genId("cust")}]),[]);
+  const updateCustomer = useCallback(c => setCustomers(prev=>prev.map(x=>x.id===c.id?c:x)),[]);
+  const deleteCustomer = useCallback(id=> setCustomers(prev=>prev.filter(x=>x.id!==id)),[]);
+  return (
+    <CatalogContext.Provider value={{products,services,customers,
+      addProduct,updateProduct,deleteProduct,addService,updateService,deleteService,
+      addCustomer,updateCustomer,deleteCustomer}}>
+      {children}
+    </CatalogContext.Provider>
+  );
+}
+const useCatalog = () => { const c=useContext(CatalogContext); if(!c) throw new Error(); return c; };
+
+// ─── SHARED ATOMS ─────────────────────────────────────────────────────────────
+
+function Accordion({ title, defaultOpen=true, children }) {
+  const [open,setOpen] = useState(defaultOpen);
+  return (
+    <div className="accordion-item">
+      <button className={`accordion-trigger${open?" open":""}`} onClick={()=>setOpen(o=>!o)}>
+        {title}<span className="chevron">▼</span>
+      </button>
+      <div className={`accordion-content${open?"":" closed"}`}>
+        <div className="accordion-inner">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Modal({ open, onClose, title, wide, children }) {
+  if (!open) return null;
+  return (
+    <div className="dialog-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className={`dialog-box${wide?" wide":""}`}>
+        <div className="dialog-header"><div className="dialog-title">{title}</div></div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const PAYMENT_COLORS = {"SEPA EUR TRANSFER":"#1a7a45","P2P Transfer ETB":"#c85e0a","Local Transfer France":"#0d5d9c","Local Transfer Ethiopia":"#c85e0a","Local Transfer Algeria":"#1869b5","Internal Transfer EUR":"#0d5d9c","Internal Transfer ETB":"#c85e0a","Internal Transfer DZD":"#1869b5","One Off":"#b56a00","SEPA Transfer France":"#1a7a45","Internal Transfer ARS V 5":"#1869b5","P2P Transfer EUR":"#0d5d9c"};
+const FEATURE_COLORS  = {"View Statement":"#1869b5","Change Account Name":"#0d5d9c","Savings goal":"#1a7a45","Order chequebook":"#c85e0a","Download Proof Of Account":"#b56a00"};
+function FBadge({ feature }) {
+  const bg = PAYMENT_COLORS[feature]||FEATURE_COLORS[feature]||"#666";
+  return <span className="feat-badge" style={{background:bg,color:"#fff"}}>{feature}</span>;
+}
+
+// ─── ICONS ────────────────────────────────────────────────────────────────────
+const IBarChart=()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+const IPackage=()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>;
+const ILayers=()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>;
+const IUsers=()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IPencil=()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>;
+const ITrash=()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>;
+const IPlus=()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+const ICheck=()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+const IX=()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>;
+
+// ─── PRODUCTS PAGE ────────────────────────────────────────────────────────────
+
+// ItemCard: two states
+// locked   = amber tint + closed padlock → item IS part of this product (accessible via service)
+// disabled = plain grey + empty checkbox → item is NOT part of this product
+function LockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(38,65%,45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  );
+}
+
+function ItemCard({ label, locked, onToggle }) {
+  return (
+    <div className={`item-card ${locked ? "locked" : "disabled"}`} onClick={onToggle}>
+      {locked
+        ? <span className="item-lock-icon"><LockIcon/></span>
+        : <span className="item-checkbox"/>
+      }
+      <span className="item-label">{label}</span>
+    </div>
+  );
+}
+
+function ProductsPage() {
+  const { products, services, addProduct, updateProduct, deleteProduct } = useCatalog();
+  const [dlg,setDlg] = useState(false);
+  const [ed,setEd] = useState(null);
+  const [nm,setNm] = useState(""); const [pts,setPts] = useState([]); const [pfs,setPfs] = useState([]);
+
+  const openNew  = () => { setEd(null); setNm(""); setPts([]); setPfs([]); setDlg(true); };
+  const openEdit = p  => { setEd(p); setNm(p.name); setPts([...p.paymentTypes]); setPfs([...p.productFeatures]); setDlg(true); };
+  const save = () => {
+    if (!nm.trim()) return;
+    const d = { name: nm.trim(), paymentTypes: pts, productFeatures: pfs };
+    if (ed) updateProduct({...ed,...d}); else addProduct(d);
+    setDlg(false);
+  };
+  const togPT = f => setPts(p => p.includes(f) ? p.filter(x=>x!==f) : [...p,f]);
+  const togPF = f => setPfs(p => p.includes(f) ? p.filter(x=>x!==f) : [...p,f]);
+
+  return (
+    <div>
+      <div className="page-header">
+        <div><div className="page-title">Products</div><div className="page-desc">Enable or disable payment types and features available on each product</div></div>
+        <button className="btn btn-primary" onClick={openNew}><IPlus/> Add Product</button>
+      </div>
+
+      <div className="space-y-6">
+        {products.map(p => {
+          // Services that have at least one item overlapping this product (global services)
+          const coveringSvcs = services.filter(s =>
+            s.paymentTypes.some(pt => p.paymentTypes.includes(pt)) ||
+            s.productFeatures.some(f => p.productFeatures.includes(f))
+          );
+          const lockedCount   = p.paymentTypes.length + p.productFeatures.length;
+          const disabledCount = (ALL_PAYMENT_TYPES.length + ALL_PRODUCT_FEATURES.length) - lockedCount;
+          const [open, setOpen] = React.useState(true);
+
+          return (
+            <div key={p.id} className="card">
+              {/* Clickable header — toggles body */}
+              <div className="prod-card-hdr" onClick={()=>setOpen(o=>!o)}>
+                <div className="prod-card-hdr-left">
+                  <svg className={`prod-card-chevron${open?" open":""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  <span className="prod-card-name">{p.name}</span>
+                  <span className="prod-card-counts">
+                    <span className="count-std">{lockedCount} locked</span>
+                    <span className="count-sep">·</span>
+                    <span className="count-addon">{disabledCount} disabled</span>
+                  </span>
+                </div>
+                {/* Actions — stop propagation so they don't toggle the accordion */}
+                <div style={{display:"flex",gap:"0.375rem"}} onClick={e=>e.stopPropagation()}>
+                  <button className="btn-ghost" style={{display:"flex",alignItems:"center",gap:"0.3rem",fontSize:"0.8125rem"}} onClick={()=>openEdit(p)}>
+                    <IPencil/> Edit
+                  </button>
+                  <button className="btn-danger-ghost" onClick={()=>deleteProduct(p.id)}><ITrash/></button>
+                </div>
+              </div>
+
+              {/* Collapsible body */}
+              {open && (
+                <div className="prod-card-body">
+                  <div style={{padding:"0 1.25rem 1rem"}}>
+                    <div className="prod-section-hdr">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                      Payment Types
+                    </div>
+                    <div className="item-grid">
+                      {ALL_PAYMENT_TYPES.map(pt => (
+                        <ItemCard key={pt} label={pt} locked={p.paymentTypes.includes(pt)}
+                          onToggle={() => {
+                            const next = p.paymentTypes.includes(pt) ? p.paymentTypes.filter(x=>x!==pt) : [...p.paymentTypes, pt];
+                            updateProduct({...p, paymentTypes: next});
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div className="prod-section-hdr" style={{paddingTop:"1rem"}}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      Product Features
+                    </div>
+                    <div className="item-grid">
+                      {ALL_PRODUCT_FEATURES.map(pf => (
+                        <ItemCard key={pf} label={pf} locked={p.productFeatures.includes(pf)}
+                          onToggle={() => {
+                            const next = p.productFeatures.includes(pf) ? p.productFeatures.filter(x=>x!==pf) : [...p.productFeatures, pf];
+                            updateProduct({...p, productFeatures: next});
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {coveringSvcs.length > 0 && (
+                    <div className="prod-svc-band">
+                      <span className="prod-svc-band-lbl">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        Services covering add-on options on this product
+                      </span>
+                      {coveringSvcs.map(s => (
+                        <span key={s.id} className="prod-svc-chip">
+                          {s.name} <span className="chip-code">({s.code})</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <Modal open={dlg} onClose={()=>setDlg(false)} title={ed?"Edit Product":"New Product"} wide>
+        <div className="dialog-body">
+          <div className="form-group">
+            <label className="form-label">Product Name</label>
+            <input className="form-input" value={nm} onChange={e=>setNm(e.target.value)} placeholder="e.g. Current Account"/>
+          </div>
+          <div className="form-group">
+            <div className="form-label-lg" style={{marginBottom:"0.5rem"}}>Payment Types</div>
+            <div className="cb-grid">
+              {ALL_PAYMENT_TYPES.map(f=>(
+                <div key={f} className="cb-wrap">
+                  <input type="checkbox" id={`dlg-pt-${f}`} checked={pts.includes(f)} onChange={()=>togPT(f)}/>
+                  <label htmlFor={`dlg-pt-${f}`}>{f}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="form-label-lg" style={{marginBottom:"0.5rem"}}>Features</div>
+            <div className="cb-grid">
+              {ALL_PRODUCT_FEATURES.map(f=>(
+                <div key={f} className="cb-wrap">
+                  <input type="checkbox" id={`dlg-pf-${f}`} checked={pfs.includes(f)} onChange={()=>togPF(f)}/>
+                  <label htmlFor={`dlg-pf-${f}`}>{f}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="dialog-footer">
+          <button className="btn btn-outline" onClick={()=>setDlg(false)}>Cancel</button>
+          <button className="btn btn-primary" onClick={save}>{ed?"Update":"Create"}</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// ─── PRODUCT COVERAGE PANEL ───────────────────────────────────────────────────
+
+function ProductCoverage({ service, products }) {
+  const [showDetail, setShowDetail] = useState(false);
+
+  const analysis = products.map(p => {
+    const unlockPays  = service.paymentTypes.filter(pt => p.paymentTypes.includes(pt));
+    const unlockFeats = service.productFeatures.filter(f  => p.productFeatures.includes(f));
+    const unlockCount = unlockPays.length + unlockFeats.length;
+    const hasMatch    = unlockCount > 0;
+    return { product: p, unlockCount, hasMatch, unlockPays, unlockFeats };
+  });
+
+  const covered     = analysis.filter(a => a.hasMatch);
+  const uncovered   = analysis.filter(a => !a.hasMatch);
+  const totalUnlock = analysis.reduce((s,a)=>s+a.unlockCount, 0);
+
+  return (
+    <div className="coverage-panel">
+      <div className="coverage-header">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Product Coverage
+      </div>
+
+      <div className="coverage-summary">
+        <div className="coverage-summary-title">
+          Effective on {covered.length} of {products.length} product{products.length!==1?"s":""}
+        </div>
+        <div className="coverage-summary-sub">
+          {totalUnlock} item{totalUnlock!==1?"s":""} will be unlocked across those products
+        </div>
+      </div>
+
+      <div className="coverage-stats">
+        <div className="coverage-stat unlock">
+          <div className="coverage-stat-val">{covered.length}</div>
+          <div className="coverage-stat-lbl">Unlock options</div>
+        </div>
+        <div className="coverage-stat nooverlap">
+          <div className="coverage-stat-val">{uncovered.length}</div>
+          <div className="coverage-stat-lbl">No overlap</div>
+        </div>
+      </div>
+
+      <div className="coverage-info">
+        <span className="coverage-info-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
+        <span>
+          <strong>Unlock options</strong> — products where this service enables at least one locked item. <strong>No overlap</strong> — products with no matching items.
+        </span>
+      </div>
+
+      <button className="coverage-toggle" onClick={()=>setShowDetail(d=>!d)}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{transform:showDetail?"rotate(90deg)":"none",transition:"transform 0.2s"}}><polyline points="9 18 15 12 9 6"/></svg>
+        {showDetail ? "Hide" : "Show"} product details
+      </button>
+
+      {showDetail && (
+        <div className="coverage-detail">
+          {analysis.map(a => (
+            <div key={a.product.id} className={`coverage-detail-row ${a.hasMatch?"unlock-row":"none-row"}`} style={{flexDirection:"column",alignItems:"flex-start",gap:"0.375rem"}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%"}}>
+                <span style={{fontWeight:600,fontSize:"0.8125rem"}}>{a.product.name}</span>
+                {!a.hasMatch && <span className="cov-tag cov-tag-none">No overlap</span>}
+              </div>
+              {a.hasMatch && (
+                <div style={{display:"flex",flexDirection:"column",gap:"0.25rem",width:"100%"}}>
+                  {a.unlockPays.length > 0 && (
+                    <div>
+                      <div style={{fontSize:"0.625rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:"var(--muted-fg)",marginBottom:"0.25rem"}}>Payments</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:"0.25rem"}}>
+                        {a.unlockPays.map(pt=><span key={pt} className="cov-tag cov-tag-unlock">{pt}</span>)}
+                      </div>
+                    </div>
+                  )}
+                  {a.unlockFeats.length > 0 && (
+                    <div>
+                      <div style={{fontSize:"0.625rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:"var(--muted-fg)",marginBottom:"0.25rem"}}>Features</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:"0.25rem"}}>
+                        {a.unlockFeats.map(f=><span key={f} className="cov-tag cov-tag-unlock">{f}</span>)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SERVICES PAGE ────────────────────────────────────────────────────────────
+// Services are global — not tied to a product. Edit only via the Edit modal.
+
+function ServicesPage() {
+  const { services, products, addService, updateService, deleteService } = useCatalog();
+  const [dlg,setDlg] = useState(false); const [ed,setEd] = useState(null);
+  const [nm,setNm] = useState(""); const [cd,setCd] = useState("");
+  const [pays,setPays] = useState([]); const [feats,setFeats] = useState([]);
+  const [isDef,setIsDef] = useState(false);
+
+  const openNew  = () => { setEd(null);setNm("");setCd("");setPays([]);setFeats([]);setIsDef(false);setDlg(true); };
+  const openEdit = s  => { setEd(s);setNm(s.name);setCd(s.code);setPays([...s.paymentTypes]);setFeats([...s.productFeatures]);setIsDef(!!s.isDefault);setDlg(true); };
+  const save = () => {
+    if (!nm.trim()||!cd.trim()) return;
+    const d = { name:nm.trim(), code:cd.trim(), isDefault:isDef, paymentTypes:pays, productFeatures:feats };
+    if (ed) updateService({...ed,...d}); else addService(d);
+    setDlg(false);
+  };
+  const togP = f => setPays(p=>p.includes(f)?p.filter(x=>x!==f):[...p,f]);
+  const togF = f => setFeats(p=>p.includes(f)?p.filter(x=>x!==f):[...p,f]);
+
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Add-on Services</div>
+          <div className="page-desc">Global services — each service unlocks a set of payments and features across any product that has them locked. The Base service is the default service that the Customer will have while onboarding or a new subscription to a Product.</div>
+        </div>
+        <button className="btn btn-primary" onClick={openNew}><IPlus/> Add Service</button>
+      </div>
+
+      <div className="space-y-6">
+        {services.map(s => {
+          const [open, setOpen] = React.useState(true);
+          return (
+          <div key={s.id} className="card">
+            {/* Clickable header — toggles body */}
+            <div className="prod-card-hdr" onClick={()=>setOpen(o=>!o)}>
+              <div className="prod-card-hdr-left">
+                <svg className={`prod-card-chevron${open?" open":""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                <div className="service-header-icon" style={{flexShrink:0}}>{s.name}</div>
+                <div>
+                  <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
+                    <span style={{fontWeight:700,fontSize:"1.0625rem"}}>{s.name}</span>
+                    {s.isDefault && (
+                      <span style={{
+                        display:"inline-flex",alignItems:"center",gap:"0.25rem",
+                        padding:"0.15rem 0.5rem",borderRadius:"999px",
+                        background:"hsla(252,60%,36%,0.12)",color:"hsl(252,55%,34%)",
+                        fontSize:"0.6875rem",fontWeight:700,letterSpacing:"0.03em"
+                      }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        DEFAULT
+                      </span>
+                    )}
+                  </div>
+                  <div style={{fontSize:"0.75rem",color:"var(--muted-fg)"}}>
+                    Code: <span style={{fontFamily:"monospace"}}>{s.code}</span>
+                  </div>
+                </div>
+              </div>
+              {/* Actions stop propagation */}
+              <div style={{display:"flex",gap:"0.375rem"}} onClick={e=>e.stopPropagation()}>
+                <button className="btn btn-outline" style={{fontSize:"0.8125rem",display:"flex",alignItems:"center",gap:"0.3rem"}} onClick={()=>openEdit(s)}><IPencil/> Edit</button>
+                <button className="btn-danger-ghost" onClick={()=>deleteService(s.id)}><ITrash/></button>
+              </div>
+            </div>
+            {/* Collapsible body */}
+            {open && (
+              <div className="prod-card-body">
+                {/* Two-column layout: all items left (read-only), coverage right */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:"0",alignItems:"start"}}>
+                  <div style={{padding:"0 1.5rem",borderRight:"1px solid var(--border)"}}>
+                    <Accordion title="Payment Types">
+                      <div className="cb-grid">
+                        {ALL_PAYMENT_TYPES.map(pt => {
+                          const on = s.paymentTypes.includes(pt);
+                          return (
+                            <div key={pt} className="cb-wrap" style={{opacity: on ? 1 : 0.45}}>
+                              <input type="checkbox" checked={on} readOnly
+                                style={{width:"1rem",height:"1rem",accentColor:"hsl(252,60%,36%)",pointerEvents:"none",flexShrink:0}}/>
+                              <label style={{fontSize:"0.875rem",color: on ? "var(--fg)" : "var(--muted-fg)",cursor:"default"}}>{pt}</label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Accordion>
+                    <Accordion title="Features">
+                      <div className="cb-grid">
+                        {ALL_PRODUCT_FEATURES.map(f => {
+                          const on = s.productFeatures.includes(f);
+                          return (
+                            <div key={f} className="cb-wrap" style={{opacity: on ? 1 : 0.45}}>
+                              <input type="checkbox" checked={on} readOnly
+                                style={{width:"1rem",height:"1rem",accentColor:"hsl(252,60%,36%)",pointerEvents:"none",flexShrink:0}}/>
+                              <label style={{fontSize:"0.875rem",color: on ? "var(--fg)" : "var(--muted-fg)",cursor:"default"}}>{f}</label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Accordion>
+                  </div>
+                  <div style={{padding:"1rem 0"}}>
+                    <ProductCoverage service={s} products={products}/>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          );
+        })}
+      </div>
+
+      <Modal open={dlg} onClose={()=>setDlg(false)} title={ed?"Edit Service":"New Service"} wide>
+        <div className="dialog-body">
+          <div className="grid-cols-2">
+            <div className="form-group"><label className="form-label">Service Name</label><input className="form-input" value={nm} onChange={e=>setNm(e.target.value)} placeholder="e.g. S4"/></div>
+            <div className="form-group"><label className="form-label">Partner Code</label><input className="form-input mono" value={cd} onChange={e=>setCd(e.target.value)} placeholder="e.g. A0"/></div>
+          </div>
+          {/* Default/Base flag toggle */}
+          <div className="form-group">
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0.625rem 0.875rem",borderRadius:"0.375rem",border:"1px solid var(--border)",background:isDef?"hsla(252,60%,36%,0.06)":"var(--muted)"}}>
+              <div>
+                <div style={{fontSize:"0.875rem",fontWeight:600,color:isDef?"hsl(252,55%,32%)":"var(--fg)"}}>Default / Base Service</div>
+                <div style={{fontSize:"0.75rem",color:"var(--muted-fg)",marginTop:"0.125rem"}}>Automatically assigned to customers on onboarding or new product subscription</div>
+              </div>
+              <button
+                onClick={()=>setIsDef(d=>!d)}
+                style={{
+                  flexShrink:0, padding:"0.3rem 0.875rem", borderRadius:"999px", border:"none",
+                  cursor:"pointer", fontFamily:"inherit", fontSize:"0.75rem", fontWeight:700,
+                  background: isDef ? "hsl(252,60%,36%)" : "var(--border)",
+                  color: isDef ? "#fff" : "var(--muted-fg)",
+                  transition:"background 0.15s, color 0.15s"
+                }}
+              >
+                {isDef ? "Yes — Default" : "No"}
+              </button>
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="form-label-lg" style={{marginBottom:"0.5rem"}}>Payment Types</div>
+            <div className="cb-grid">
+              {ALL_PAYMENT_TYPES.map(f=>(
+                <div key={f} className="cb-wrap">
+                  <input type="checkbox" id={`dlgsp-${f}`} checked={pays.includes(f)} onChange={()=>togP(f)}/>
+                  <label htmlFor={`dlgsp-${f}`}>{f}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="form-label-lg" style={{marginBottom:"0.5rem"}}>Features</div>
+            <div className="cb-grid">
+              {ALL_PRODUCT_FEATURES.map(f=>(
+                <div key={f} className="cb-wrap">
+                  <input type="checkbox" id={`dlgsf-${f}`} checked={feats.includes(f)} onChange={()=>togF(f)}/>
+                  <label htmlFor={`dlgsf-${f}`}>{f}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="dialog-footer">
+          <button className="btn btn-outline" onClick={()=>setDlg(false)}>Cancel</button>
+          <button className="btn btn-primary" onClick={save}>{ed?"Update":"Create"}</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// ─── CUSTOMERS PAGE ───────────────────────────────────────────────────────────
+// Resolution rule: customer gets product.items ∩ service.items
+// No services subscribed = nothing active.
+
+function CustomersPage() {
+  const { customers, products, services, addCustomer, updateCustomer, deleteCustomer } = useCatalog();
+  const [dlg,setDlg] = useState(false); const [ed,setEd] = useState(null);
+  const [nm,setNm] = useState(""); const [pid,setPid] = useState(""); const [sids,setSids] = useState([]);
+
+  const openNew  = () => { setEd(null);setNm("");setPid(products[0]?.id||"");setSids([]);setDlg(true); };
+  const openEdit = c  => { setEd(c);setNm(c.name);setPid(c.productId);setSids([...c.serviceIds]);setDlg(true); };
+  const save = () => {
+    if (!nm.trim()||!pid) return;
+    const d = { name:nm.trim(), productId:pid, serviceIds:sids };
+    if (ed) updateCustomer({...ed,...d}); else addCustomer(d);
+    setDlg(false);
+  };
+  const togS = id => setSids(p=>p.includes(id)?p.filter(x=>x!==id):[...p,id]);
+
+  // Resolution: product items ∩ (union of subscribed service items)
+  // No services → empty active sets
+  const resolve = cust => {
+    const pr = products.find(p=>p.id===cust.productId);
+    if (!pr) return { custSvcs:[], activePays:[], inactivePays:[], activeFeats:[], inactiveFeats:[], svcPayAttrib:{}, svcFeatAttrib:{} };
+    const custSvcs = services.filter(s=>cust.serviceIds.includes(s.id));
+
+    const prodPays  = pr.paymentTypes    || [];
+    const prodFeats = pr.productFeatures || [];
+
+    if (custSvcs.length === 0) {
+      return { custSvcs, activePays:[], inactivePays:prodPays, activeFeats:[], inactiveFeats:prodFeats, svcPayAttrib:{}, svcFeatAttrib:{} };
+    }
+
+    // Union of all enabled items across subscribed services
+    const svcPays  = [...new Set(custSvcs.flatMap(s=>s.paymentTypes))];
+    const svcFeats = [...new Set(custSvcs.flatMap(s=>s.productFeatures))];
+
+    // Intersection: must be enabled on both product AND at least one service
+    const activePays    = prodPays.filter(p  => svcPays.includes(p));
+    const inactivePays  = prodPays.filter(p  => !svcPays.includes(p));
+    const activeFeats   = prodFeats.filter(f => svcFeats.includes(f));
+    const inactiveFeats = prodFeats.filter(f => !svcFeats.includes(f));
+
+    // Attribution: which service provides each active item
+    const svcPayAttrib={}, svcFeatAttrib={};
+    activePays.forEach(pt  => { const sv=custSvcs.find(s=>s.paymentTypes.includes(pt));    if(sv) svcPayAttrib[pt]=sv.name; });
+    activeFeats.forEach(f  => { const sv=custSvcs.find(s=>s.productFeatures.includes(f));  if(sv) svcFeatAttrib[f]=sv.name; });
+
+    return { custSvcs, activePays, inactivePays, activeFeats, inactiveFeats, svcPayAttrib, svcFeatAttrib };
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div><div className="page-title">Customers</div><div className="page-desc">Customers receive the intersection of their product and subscribed service items. No services = no access.</div></div>
+        <button className="btn btn-primary" onClick={openNew}><IPlus/> Add Customer</button>
+      </div>
+
+      <div className="space-y-4">
+        {customers.map(cust => {
+          const pr = products.find(p=>p.id===cust.productId);
+          const { custSvcs, activePays, inactivePays, activeFeats, inactiveFeats, svcPayAttrib, svcFeatAttrib } = resolve(cust);
+          return (
+            <div key={cust.id} className="card">
+              <div className="card-header-row" style={{paddingBottom:"0.75rem"}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:"1.0625rem"}}>{cust.name}</div>
+                  <div style={{fontSize:"0.8125rem",color:"var(--muted-fg)"}}>{pr?.name||"Unknown Product"}</div>
+                </div>
+                <div className="btn-actions">
+                  <button className="btn-ghost" onClick={()=>openEdit(cust)}><IPencil/></button>
+                  <button className="btn-danger-ghost" onClick={()=>deleteCustomer(cust.id)}><ITrash/></button>
+                </div>
+              </div>
+
+              <div style={{padding:"0 1.5rem 1.25rem"}}>
+                {/* Subscribed services */}
+                <div className="svc-band">
+                  <div className="svc-band-label">Subscribed Services</div>
+                  <div className="svc-chips">
+                    {custSvcs.length === 0
+                      ? <span style={{fontSize:"0.875rem",color:"var(--muted-fg)"}}>No services</span>
+                      : custSvcs.map(s=><span key={s.id} className="svc-chip">{s.name} <span className="code">({s.code})</span></span>)
+                    }
+                  </div>
+                </div>
+
+                {/* No-service warning */}
+                {custSvcs.length === 0 && (
+                  <div className="no-svc-warning">
+                    ⚠ No services subscribed — customer has no active payment types or features
+                  </div>
+                )}
+
+                {/* Resolution grid */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1.5rem"}}>
+                  <div>
+                    <div className="section-lbl">Payment Types</div>
+                    {activePays.map(pt => (
+                      <div key={pt} className="resolved-row active">
+                        <span className="icon-check"><ICheck/></span>
+                        <span className="label-text">{pt}</span>
+                        {svcPayAttrib[pt] && <span className="tag-via">via {svcPayAttrib[pt]}</span>}
+                      </div>
+                    ))}
+                    {inactivePays.map(pt => (
+                      <div key={pt} className="resolved-row inactive">
+                        <span className="icon-x"><IX/></span>
+                        <span className="label-text">{pt}</span>
+                      </div>
+                    ))}
+                    {!activePays.length && !inactivePays.length && (
+                      <span style={{fontSize:"0.875rem",color:"var(--muted-fg)"}}>None configured on product</span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="section-lbl">Features</div>
+                    {activeFeats.map(f => (
+                      <div key={f} className="resolved-row active">
+                        <span className="icon-check"><ICheck/></span>
+                        <span className="label-text">{f}</span>
+                        {svcFeatAttrib[f] && <span className="tag-via">via {svcFeatAttrib[f]}</span>}
+                      </div>
+                    ))}
+                    {inactiveFeats.map(f => (
+                      <div key={f} className="resolved-row inactive">
+                        <span className="icon-x"><IX/></span>
+                        <span className="label-text">{f}</span>
+                      </div>
+                    ))}
+                    {!activeFeats.length && !inactiveFeats.length && (
+                      <span style={{fontSize:"0.875rem",color:"var(--muted-fg)"}}>None configured on product</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <Modal open={dlg} onClose={()=>setDlg(false)} title={ed?"Edit Customer":"New Customer"}>
+        <div className="dialog-body">
+          <div className="form-group"><label className="form-label">Customer Name</label><input className="form-input" value={nm} onChange={e=>setNm(e.target.value)} placeholder="e.g. Customer 3"/></div>
+          <div className="form-group">
+            <label className="form-label">Account Product</label>
+            <select className="select-input" value={pid} onChange={e=>setPid(e.target.value)}>
+              {products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Services</label>
+            <div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginTop:"0.25rem"}}>
+              {services.map(s=>(
+                <div key={s.id} className="cb-wrap">
+                  <input type="checkbox" id={`cs-${s.id}`} checked={sids.includes(s.id)} onChange={()=>togS(s.id)}/>
+                  <label htmlFor={`cs-${s.id}`}>{s.name} <span style={{fontFamily:"monospace",fontSize:"0.75rem",color:"var(--muted-fg)"}}>({s.code})</span></label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="dialog-footer">
+          <button className="btn btn-outline" onClick={()=>setDlg(false)}>Cancel</button>
+          <button className="btn btn-primary" onClick={save}>{ed?"Update":"Create"}</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// ─── OVERVIEW PAGE ────────────────────────────────────────────────────────────
+
+function OverviewPage() {
+  const { products, services, customers } = useCatalog();
+
+  const stats = [
+    { icon:<IPackage/>, label:"Products",      value:products.length,  bg:"var(--primary)" },
+    { icon:<ILayers/>,  label:"Services",      value:services.length,  bg:"var(--accent)"  },
+    { icon:<IUsers/>,   label:"Customers",     value:customers.length, bg:"var(--info)"    },
+  ];
+
+  return (
+    <div>
+      <div className="page-header">
+        <div><div className="page-title">DBS Product & Service Catalogue</div><div className="page-desc">Digital Banking Product & Service Catalog configuration</div></div>
+      </div>
+
+      <div className="stat-grid">
+        {stats.map((s,i)=>(
+          <div key={i} className="card stat-card">
+            <div className="stat-icon" style={{background:s.bg,color:"#fff"}}>{s.icon}</div>
+            <div><div className="stat-val">{s.value}</div><div className="stat-lbl">{s.label}</div></div>
+          </div>
+        ))}
+      </div>
+
+      <div className="ov-grid">
+        {/* Products */}
+        <div className="card">
+          <div style={{padding:"1rem 1.25rem 0.5rem",borderBottom:"1px solid var(--border)",fontWeight:700,fontSize:"0.9375rem"}}>Products</div>
+          <div style={{padding:"1rem 1.25rem"}}>
+            {products.map(p=>(
+              <div key={p.id} className="ov-item">
+                <div className="ov-item-name">{p.name}</div>
+                <div className="ov-section-lbl">Payment Types</div>
+                <div className="badges-wrap" style={{marginBottom:"0.375rem"}}>{p.paymentTypes.map(f=><FBadge key={f} feature={f}/>)}{!p.paymentTypes.length&&<span style={{fontSize:"0.75rem",color:"var(--muted-fg)"}}>—</span>}</div>
+                <div className="ov-section-lbl">Features</div>
+                <div className="badges-wrap">{p.productFeatures.map(f=><FBadge key={f} feature={f}/>)}{!p.productFeatures.length&&<span style={{fontSize:"0.75rem",color:"var(--muted-fg)"}}>—</span>}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Services */}
+        <div className="card">
+          <div style={{padding:"1rem 1.25rem 0.5rem",borderBottom:"1px solid var(--border)",fontWeight:700,fontSize:"0.9375rem"}}>Add-on Services</div>
+          <div style={{padding:"1rem 1.25rem"}}>
+            {services.map(s=>(
+              <div key={s.id} className="ov-item">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.5rem"}}>
+                  <div className="ov-item-name" style={{margin:0}}>{s.name}</div>
+                  <span style={{fontFamily:"monospace",fontSize:"0.75rem",background:"var(--card)",border:"1px solid var(--border)",padding:"0.125rem 0.5rem",borderRadius:"0.25rem"}}>Code: {s.code}</span>
+                </div>
+                <div className="ov-section-lbl">Payment Types</div>
+                <div className="badges-wrap" style={{marginBottom:"0.375rem"}}>{s.paymentTypes.map(f=><FBadge key={f} feature={f}/>)}{!s.paymentTypes.length&&<span style={{fontSize:"0.75rem",color:"var(--muted-fg)"}}>—</span>}</div>
+                <div className="ov-section-lbl">Features</div>
+                <div className="badges-wrap">{s.productFeatures.map(f=><FBadge key={f} feature={f}/>)}{!s.productFeatures.length&&<span style={{fontSize:"0.75rem",color:"var(--muted-fg)"}}>—</span>}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Customer resolution */}
+        <div className="card ov-full">
+          <div style={{padding:"1rem 1.25rem 0.5rem",borderBottom:"1px solid var(--border)",fontWeight:700,fontSize:"0.9375rem"}}>Customer Resolved Capabilities</div>
+          <div style={{padding:"1rem 1.25rem"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"1rem"}}>
+              {customers.map(cust=>{
+                const pr = products.find(p=>p.id===cust.productId);
+                const cs = services.filter(s=>cust.serviceIds.includes(s.id));
+                const svcPays  = [...new Set(cs.flatMap(s=>s.paymentTypes))];
+                const svcFeats = [...new Set(cs.flatMap(s=>s.productFeatures))];
+                const prodPays  = pr?.paymentTypes    || [];
+                const prodFeats = pr?.productFeatures || [];
+                const activePays  = cs.length===0 ? [] : prodPays.filter(p=>svcPays.includes(p));
+                const activeFeats = cs.length===0 ? [] : prodFeats.filter(f=>svcFeats.includes(f));
+                return (
+                  <div key={cust.id} style={{padding:"0.875rem",borderRadius:"0.5rem",border:"1px solid var(--border)",background:"var(--card)"}}>
+                    <div style={{fontWeight:600,marginBottom:"0.25rem"}}>{cust.name}</div>
+                    <div style={{fontSize:"0.75rem",color:"var(--muted-fg)",marginBottom:"0.625rem"}}>
+                      {pr?.name} · Services: {cs.map(s=>s.name).join(", ")||"None"}
+                    </div>
+                    <div style={{display:"flex",gap:"0.75rem"}}>
+                      <div style={{flex:1,textAlign:"center",padding:"0.5rem",borderRadius:"0.375rem",background:cs.length===0?"hsla(0,72%,51%,0.06)":"hsla(145,50%,42%,0.08)"}}>
+                        <div style={{fontSize:"1.25rem",fontWeight:700,color:cs.length===0?"var(--destructive)":"var(--success)"}}>{activePays.length}</div>
+                        <div style={{fontSize:"0.6875rem",color:"var(--muted-fg)"}}>Active Payments</div>
+                      </div>
+                      <div style={{flex:1,textAlign:"center",padding:"0.5rem",borderRadius:"0.375rem",background:cs.length===0?"hsla(0,72%,51%,0.06)":"hsla(207,90%,40%,0.08)"}}>
+                        <div style={{fontSize:"1.25rem",fontWeight:700,color:cs.length===0?"var(--destructive)":"var(--primary)"}}>{activeFeats.length}</div>
+                        <div style={{fontSize:"0.6875rem",color:"var(--muted-fg)"}}>Active Features</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── README PAGE ──────────────────────────────────────────────────────────────
+
+function ReadMePage() {
+  const rmC = {
+    border:"var(--border)", muted:"var(--muted)", mutedFg:"var(--muted-fg)",
+    primary:"var(--primary)", success:"hsl(145,45%,38%)", successLight:"hsl(145,50%,95%)",
+    successBorder:"hsl(145,40%,78%)", warning:"hsl(28,85%,45%)", warningLight:"hsl(28,90%,95%)",
+    warningBorder:"hsl(28,70%,75%)", text:"var(--fg)", textSub:"hsl(215,15%,38%)",
+  };
+
+  const Section = ({ title, children }) => (
+    <div style={{marginBottom:28}}>
+      <h3 style={{fontSize:15,fontWeight:700,color:rmC.text,marginBottom:12,
+        paddingBottom:8,borderBottom:`2px solid ${rmC.border}`}}>{title}</h3>
+      {children}
+    </div>
+  );
+
+  const ConceptCard = ({ icon, title, body }) => (
+    <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,padding:"14px 16px"}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+        <span style={{fontSize:18}}>{icon}</span>
+        <span style={{fontWeight:700,fontSize:13}}>{title}</span>
+      </div>
+      <p style={{fontSize:12,color:rmC.textSub,lineHeight:1.6,margin:0}}>{body}</p>
+    </div>
+  );
+
+  const FlowStep = ({ num, color, title, role, body }) => (
+    <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
+      <div style={{width:28,height:28,borderRadius:"50%",background:color,
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontWeight:800,fontSize:13,color:"#fff",flexShrink:0,marginTop:2}}>{num}</div>
+      <div>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+          <span style={{fontWeight:700,fontSize:13}}>{title}</span>
+          <span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:4,
+            background:color+"22",color:color,border:`1px solid ${color}44`,
+            textTransform:"uppercase",letterSpacing:"0.04em"}}>{role}</span>
+        </div>
+        <p style={{fontSize:12,color:rmC.textSub,lineHeight:1.6,margin:0}}>{body}</p>
+      </div>
+    </div>
+  );
+
+  const RoleCard = ({ initials, avatarBg, name, role, roleColor, owns, pages }) => (
+    <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,padding:"14px 16px"}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+        <div style={{width:36,height:36,borderRadius:8,background:avatarBg,
+          display:"flex",alignItems:"center",justifyContent:"center",
+          fontWeight:800,fontSize:13,color:"#fff"}}>{initials}</div>
+        <div>
+          <div style={{fontWeight:700,fontSize:13}}>{name}</div>
+          <span style={{fontSize:10,fontWeight:700,padding:"1px 7px",borderRadius:4,
+            background:avatarBg,color:"#fff",
+            textTransform:"uppercase",letterSpacing:"0.04em"}}>{role}</span>
+        </div>
+      </div>
+      <p style={{fontSize:12,color:rmC.textSub,lineHeight:1.6,margin:"0 0 8px"}}>{owns}</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+        {pages.map(p=>(
+          <span key={p} style={{fontSize:11,padding:"2px 8px",borderRadius:4,
+            background:rmC.muted,border:`1px solid ${rmC.border}`,color:rmC.textSub}}>{p}</span>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{maxWidth:880,margin:"0 auto"}}>
+
+      {/* Hero */}
+      <div style={{background:"linear-gradient(135deg, hsl(222,35%,14%) 0%, hsl(215,40%,22%) 100%)",
+        borderRadius:12,padding:"28px 32px",marginBottom:28,color:"#fff"}}>
+        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",
+          gap:16,flexWrap:"wrap"}}>
+          <div>
+            <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,.4)",
+              textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>
+              POC 2 · Back Office Tool
+            </div>
+            <h1 style={{fontSize:24,fontWeight:800,margin:"0 0 10px",letterSpacing:"-0.3px"}}>
+              DBS Digital Banking<br/>Product &amp; Service Catalogue
+            </h1>
+            <p style={{fontSize:13,color:"rgba(255,255,255,.6)",lineHeight:1.65,
+              margin:0,maxWidth:520}}>
+              A role-separated back-office tool that governs which payment types and product
+              features are available to each customer — through a simplified two-state
+              model of Products (locked / disabled items) and globally configured Services.
+            </p>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
+            {[
+              {label:"Products configured", value:"2", bg:"hsl(207,80%,45%)"},
+              {label:"Services configured",  value:"4", bg:"hsl(28,85%,50%)"},
+              {label:"Customer accounts",    value:"2", bg:"hsl(145,45%,40%)"},
+            ].map(s=>(
+              <div key={s.label} style={{background:"rgba(255,255,255,.07)",
+                borderRadius:8,padding:"8px 14px",display:"flex",
+                alignItems:"center",gap:10,border:"1px solid rgba(255,255,255,.1)"}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:s.bg,flexShrink:0}}/>
+                <span style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>{s.label}</span>
+                <span style={{fontWeight:800,fontSize:16,marginLeft:"auto"}}>{s.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Problem Statement */}
+      <Section title="🎯 Problem Statement">
+        <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,padding:"16px 20px"}}>
+          <p style={{fontSize:13,color:rmC.textSub,lineHeight:1.7,margin:"0 0 12px"}}>
+            In a multi-product digital bank, the same set of payment rails and account features must
+            be offered differently across product tiers. A <strong>Basic Current Account</strong> may
+            include a subset of transfers as standard, while more advanced payment types are only
+            available when a customer subscribes to a specific add-on service. A <strong>Premium
+            Current Account</strong> may include those same options at a different level — yet both
+            products share the same global service catalogue.
+          </p>
+          <p style={{fontSize:13,color:rmC.textSub,lineHeight:1.7,margin:"0 0 12px"}}>
+            The challenge is that <strong>the same option can appear on different products with
+            different availability</strong>. Without a structured tool, this configuration lives in
+            spreadsheets and tribal knowledge — creating risk of misconfiguration, billing errors,
+            and gaps in customer entitlements at onboarding or when services are updated.
+          </p>
+          <p style={{fontSize:13,color:rmC.textSub,lineHeight:1.7,margin:0}}>
+            POC 2 refines the model from POC 1: removing the three-state (Standard / Add-on /
+            Not offered) complexity and replacing it with a clean two-state system — items on a
+            product are either <strong>locked</strong> (in scope, requires a service to activate)
+            or <strong>disabled</strong> (not offered). Services become fully global and the
+            default Base service is automatically assigned to every customer at onboarding.
+          </p>
+        </div>
+      </Section>
+
+      {/* How It Works */}
+      <Section title="⚙️ How It Works — The Two-State Model">
+        <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,
+          padding:"16px 20px",marginBottom:14}}>
+          <p style={{fontSize:13,color:rmC.textSub,lineHeight:1.7,margin:"0 0 16px"}}>
+            The solution is built on three independent layers. Each layer has a clear owner
+            and a well-defined scope. Configuration flows top-down: Products define what is
+            possible, Services define what is enabled globally, and Customers subscribe to
+            the services that activate their entitlements.
+          </p>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <FlowStep num="1" color="hsl(207,80%,45%)" role="Product Manager" title="Define Products"
+              body="Each product holds a flat list of payment types and product features. Each item is either Locked (in-scope — a service is needed to activate it for a customer) or Disabled (not offered on this product). The product card shows counts of locked and disabled items and which services have coverage over it."/>
+            <FlowStep num="2" color="hsl(28,85%,50%)" role="Service Manager" title="Configure Global Services"
+              body="Services are fully product-agnostic — they carry a global list of payment types and features they enable. One service marked as Default (Base1, code B0) is automatically assigned to new customers at onboarding. The Coverage Panel on each service shows, per product, exactly which payments and features will be unlocked when that service is subscribed to."/>
+            <FlowStep num="3" color="hsl(145,45%,40%)" role="Customer Operations" title="Subscribe Customers"
+              body="Each customer is assigned one product and one or more services. Their active capability set is resolved as the intersection of the product's locked items and the union of all their subscribed services' enabled items. Customers with no services beyond Base1 will only have items that Base1 enables and that appear on their product."/>
+          </div>
+        </div>
+      </Section>
+
+      {/* Key Concepts */}
+      <Section title="💡 Key Design Decisions in POC 2">
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          <ConceptCard icon="🔒" title="Two-State Products (Locked / Disabled)"
+            body="POC 1 used three states: Standard, Add-on required, and Not offered. POC 2 simplifies to two: Locked (in scope, needs a service) and Disabled (not on this product). This removes ambiguity — if an item is on a product, a service is always needed to activate it."/>
+          <ConceptCard icon="🌐" title="Fully Global Services"
+            body="In POC 1, services had a product link. In POC 2, services are completely product-agnostic. Any service can match any product. The Coverage Panel shows the actual item lists (not just counts) that will be unlocked per product when a customer subscribes to a service."/>
+          <ConceptCard icon="⭐" title="Default / Base Service Flag"
+            body="A service-level isDefault flag marks which service (Base1, B0) is automatically assigned to every customer at onboarding or on a new product subscription. This is visible as a DEFAULT badge on the service card and a toggle in the edit modal. Only one service should carry this flag at a time."/>
+          <ConceptCard icon="📊" title="Coverage Panel — Item-Level Detail"
+            body="Rather than showing unlock counts, the Coverage Panel in POC 2 expands to show the actual payment type and feature names that will be unlocked per product. This makes impact immediately visible without requiring a separate audit step."/>
+          <ConceptCard icon="👁️" title="Read-Only Service Card View"
+            body="Service cards display all global payment types and features in a read-only state — enabled items are ticked and full-opacity, disabled items are shown faded. Editing is only possible via the explicit Edit button and modal, preventing accidental changes."/>
+          <ConceptCard icon="👥" title="Role-Separated Access"
+            body="Product Managers configure products only. Service Managers configure services only. Customer Operations manages customer accounts only. The Admin persona has full access across all pages. No role can inadvertently modify another domain."/>
+        </div>
+      </Section>
+
+      {/* Configuration Flow */}
+      <Section title="🔄 Resolved Capability — How a Customer's Entitlements Are Calculated">
+        <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,padding:"16px 20px"}}>
+          <p style={{fontSize:13,color:rmC.textSub,lineHeight:1.7,margin:"0 0 14px"}}>
+            A customer's active payment types and features are determined by a simple intersection rule:
+          </p>
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
+            {[
+              {step:"Step 1", desc:"Take the customer's assigned Product and collect all items marked as Locked on that product."},
+              {step:"Step 2", desc:"Take the union of all payment types and features enabled across all the customer's subscribed Services."},
+              {step:"Step 3", desc:"The customer's active items = Product locked items ∩ Service union. Items in the product but not covered by any service remain inactive. Items not on the product at all are never active regardless of service."},
+            ].map(({step,desc})=>(
+              <div key={step} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:4,
+                  background:"hsl(207,85%,92%)",color:"hsl(207,80%,32%)",
+                  flexShrink:0,marginTop:1}}>{step}</span>
+                <span style={{fontSize:12,color:rmC.textSub,lineHeight:1.6}}>{desc}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{background:"hsl(28,90%,96%)",border:`1px solid hsl(28,70%,80%)`,
+            borderRadius:8,padding:"10px 14px",fontSize:12,color:"hsl(28,60%,35%)"}}>
+            <strong>Important:</strong> A customer with no services (or only the Base service) will
+            only have items active that Base1 enables AND that appear as Locked on their product.
+            If a product item is not in Base1's enabled list, a further add-on service is required.
+          </div>
+        </div>
+      </Section>
+
+      {/* Roles */}
+      <Section title="👤 Roles &amp; Access">
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12}}>
+          <RoleCard initials="AD" avatarBg="hsl(262,55%,48%)" name="Admin" role="Administrator"
+            roleColor="#5b21b6"
+            owns="Full visibility across all pages. Used for cross-functional oversight, onboarding new team members, and reviewing the end-to-end catalogue configuration."
+            pages={["Read Me","Overview","Products","Services","Customers"]}/>
+          <RoleCard initials="AM" avatarBg="hsl(207,80%,45%)" name="Alex Morgan" role="Product Manager"
+            roleColor="#1a6fba"
+            owns="Owns product definitions. Sets each payment type and feature on a product as Locked (add-on required) or Disabled (not offered). Cannot modify services or customer subscriptions."
+            pages={["Read Me","Overview","Products"]}/>
+          <RoleCard initials="JL" avatarBg="hsl(28,85%,50%)" name="Jordan Lee" role="Service Manager"
+            roleColor="#b85d00"
+            owns="Owns global service configuration. Sets which payment types and features each service enables. Monitors product coverage impact. Can mark a service as the Default/Base service."
+            pages={["Read Me","Overview","Services"]}/>
+          <RoleCard initials="SC" avatarBg="hsl(145,45%,40%)" name="Sam Clarke" role="Customer Ops"
+            roleColor="#1a7a45"
+            owns="Manages customer accounts. Assigns products, subscribes and unsubscribes add-on services, and reviews each customer's resolved active capability set."
+            pages={["Read Me","Overview","Customers"]}/>
+        </div>
+      </Section>
+
+      {/* Visual Language */}
+      <Section title="🎨 Visual Language">
+        <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,padding:"16px 20px"}}>
+          {[
+            {boxBg:"hsl(40,90%,95%)",boxBorder:"hsl(40,70%,75%)",boxIcon:"🔒",boxColor:"hsl(40,75%,40%)",
+              label:"Locked — in scope, needs a service",
+              meaning:"This item is on the product. A customer must have a service that enables it to have it active. Shown with an amber tint and a padlock icon on the product card."},
+            {boxBg:"hsl(215,20%,94%)",boxBorder:"hsl(215,20%,82%)",boxIcon:"☐",boxColor:"hsl(215,15%,55%)",
+              label:"Disabled — not offered on this product",
+              meaning:"This item does not appear on this product. No service can activate it for customers on this product. Shown greyed out with an empty checkbox."},
+            {boxBg:rmC.successLight,boxBorder:rmC.successBorder,boxIcon:"✓",boxColor:rmC.success,
+              label:"Active via service (customer view)",
+              meaning:"The item is Locked on the product, and a subscribed service enables it — so it is fully active for this customer. Shown with a green tick and a 'via S1' attribution tag naming the service that unlocked it."},
+            {boxBg:"hsl(0,72%,96%)",boxBorder:"hsl(0,60%,82%)",boxIcon:"✗",boxColor:"hsl(0,65%,48%)",
+              label:"Inactive (customer view)",
+              meaning:"The item is Locked on the product but none of the customer's subscribed services enable it. Shown struck-through in red. The customer needs to subscribe to an additional service."},
+            {boxBg:"hsl(207,85%,92%)",boxBorder:"hsl(207,60%,75%)",boxIcon:"★",boxColor:"hsl(207,80%,32%)",
+              label:"DEFAULT badge (service view)",
+              meaning:"This service is the Base service automatically assigned to all customers at onboarding or on new product subscription. Configured via the isDefault flag in the service edit modal."},
+          ].map((row,i,arr)=>(
+            <div key={row.label} style={{display:"flex",alignItems:"center",gap:16,
+              padding:"10px 0",borderBottom:i<arr.length-1?`1px solid ${rmC.border}`:"none"}}>
+              <div style={{width:110,flexShrink:0,display:"flex",alignItems:"center",gap:8}}>
+                <div style={{width:24,height:24,borderRadius:5,background:row.boxBg,
+                  border:`2px solid ${row.boxBorder}`,display:"flex",alignItems:"center",
+                  justifyContent:"center",fontSize:13,fontWeight:800,color:row.boxColor,
+                  flexShrink:0}}>{row.boxIcon}</div>
+                <span style={{fontSize:11,fontWeight:700,color:row.boxColor,
+                  whiteSpace:"nowrap"}}>{row.label.split(" — ")[0]}</span>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:600,fontSize:12,marginBottom:2}}>{row.label}</div>
+                <div style={{fontSize:11,color:rmC.mutedFg,lineHeight:1.5}}>{row.meaning}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Scope */}
+      <Section title="🧪 POC Scope &amp; Assumptions">
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,padding:"14px 16px"}}>
+            <div style={{fontWeight:700,fontSize:13,color:rmC.success,marginBottom:10}}>✓ In Scope (POC 2)</div>
+            {[
+              "Two-state product item model: Locked (add-on required) or Disabled (not offered)",
+              "Fully global, product-agnostic service configuration",
+              "isDefault flag on services — marks the Base service auto-assigned at onboarding",
+              "Base1 (B0) pre-assigned to all customers in seed data",
+              "Coverage Panel showing exact payment and feature lists unlocked per product",
+              "Read-only service card view — editing only through explicit Edit modal",
+              "Customer resolved capability view with 'via S1' attribution tags",
+              "Role-based persona login: Admin, Product Manager, Service Manager, Customer Ops",
+              "Full CRUD for products, services, and customer accounts",
+              "In-memory state — fully self-contained, no backend required",
+            ].map(item=>(
+              <div key={item} style={{display:"flex",gap:8,alignItems:"flex-start",
+                fontSize:12,color:rmC.textSub,marginBottom:6,lineHeight:1.5}}>
+                <span style={{color:rmC.success,flexShrink:0}}>•</span>{item}
+              </div>
+            ))}
+          </div>
+          <div style={{background:"var(--card)",border:`1px solid ${rmC.border}`,borderRadius:10,padding:"14px 16px"}}>
+            <div style={{fontWeight:700,fontSize:13,color:rmC.mutedFg,marginBottom:10}}>⏳ Deferred — Future Iterations</div>
+            {[
+              "Backend API integration and persistent data storage",
+              "Audit log — full history of who changed what and when",
+              "Enforcement of single-default rule (only one service can be isDefault=true)",
+              "Customer impact preview before a configuration change is saved",
+              "Approval workflow for product and service configuration changes",
+              "Bulk import and export of product and service configurations",
+              "Authentication, SSO, and fine-grained permission management",
+              "Multi-currency and localisation support for service and payment types",
+              "Reporting, analytics, and subscription dashboards",
+            ].map(item=>(
+              <div key={item} style={{display:"flex",gap:8,alignItems:"flex-start",
+                fontSize:12,color:rmC.textSub,marginBottom:6,lineHeight:1.5}}>
+                <span style={{color:rmC.mutedFg,flexShrink:0}}>•</span>{item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <div style={{textAlign:"center",padding:"16px 0 8px",
+        fontSize:11,color:rmC.mutedFg,borderTop:`1px solid ${rmC.border}`}}>
+        DBS Digital Banking Platform · Product &amp; Service Catalogue · POC 2 · Back Office Tool
+      </div>
+    </div>
+  );
+}
+
+// ─── APP SHELL ────────────────────────────────────────────────────────────────
+
+const PERSONAS = [
+  {
+    id: "admin",
+    initials: "AD",
+    name: "Admin",
+    role: "Administrator",
+    roleColor: "#5b21b6",
+    roleBg: "hsl(262,60%,92%)",
+    avatarBg: "hsl(262,55%,48%)",
+    desc: "Full access to all catalogue configuration — products, services, customers, and system overview.",
+    pages: ["readme","overview","products","services","customers"],
+    pageLabels: ["Read Me","Overview","Products","Services","Customers"],
+  },
+  {
+    id: "pm",
+    initials: "AM",
+    name: "Alex Morgan",
+    role: "Product Manager",
+    roleColor: "#1a6fba",
+    roleBg: "hsl(207,70%,92%)",
+    avatarBg: "hsl(207,80%,45%)",
+    desc: "Configures products, defines which payment types and features are Standard or Add-on required.",
+    pages: ["readme","overview","products"],
+    pageLabels: ["Read Me","Overview","Products"],
+  },
+  {
+    id: "sm",
+    initials: "JL",
+    name: "Jordan Lee",
+    role: "Service Manager",
+    roleColor: "#b85d00",
+    roleBg: "hsl(28,90%,92%)",
+    avatarBg: "hsl(28,85%,50%)",
+    desc: "Configures global services, defines which options each service enables, and monitors product coverage impact.",
+    pages: ["readme","overview","services"],
+    pageLabels: ["Read Me","Overview","Services"],
+  },
+  {
+    id: "co",
+    initials: "SC",
+    name: "Sam Clarke",
+    role: "Customer Operations",
+    roleColor: "#1a7a45",
+    roleBg: "hsl(145,50%,90%)",
+    avatarBg: "hsl(145,45%,40%)",
+    desc: "Manages customer accounts — assigns products, subscribes and unsubscribes services, and reviews each customer's resolved capabilities.",
+    pages: ["readme","overview","customers"],
+    pageLabels: ["Read Me","Overview","Customers"],
+  },
+];
+
+const PAGE_ICONS = {
+  readme: <span style={{fontSize:"1rem"}}>📖</span>,
+  overview: <IBarChart/>,
+  products: <IPackage/>,
+  services: <ILayers/>,
+  customers: <IUsers/>,
+};
+
+function PersonaScreen({ onSelect }) {
+  const [hovered, setHovered] = useState(null);
+  return (
+    <div className="persona-screen">
+      <div className="persona-logo">
+        <div className="persona-logo-title">DBS Platform</div>
+        <div className="persona-logo-sub">Product &amp; Service Catalogue — Back Office</div>
+        <div style={{fontSize:"0.8125rem",color:"hsl(250,22%,58%)",marginTop:"0.375rem",fontStyle:"italic"}}>Chargeable Service Poc 1 - With Base Service</div>
+        <div className="persona-logo-line"/>
+      </div>
+      <div className="persona-role-lbl">Select your role to continue</div>
+      <div className="persona-cards">
+        {PERSONAS.map(p => (
+          <div
+            key={p.id}
+            className={`persona-card${hovered===p.id?" selected":""}`}
+            onMouseEnter={()=>setHovered(p.id)}
+            onMouseLeave={()=>setHovered(null)}
+            onClick={()=>onSelect(p)}
+          >
+            <div className="persona-card-top">
+              <div className="persona-avatar" style={{background:p.avatarBg}}>{p.initials}</div>
+              <div>
+                <div className="persona-name">{p.name}</div>
+                <span className="persona-role-badge" style={{background:p.roleBg,color:p.roleColor}}>{p.role}</span>
+              </div>
+            </div>
+            <div className="persona-desc">{p.desc}</div>
+            <div className="persona-pages">
+              {p.pages.map((pg,i) => (
+                <span key={pg} className="persona-page-chip">
+                  {PAGE_ICONS[pg]} {p.pageLabels[i]}
+                </span>
+              ))}
+            </div>
+            <button className="persona-signin" onClick={e=>{e.stopPropagation();onSelect(p);}}>
+              Sign in as {p.role} →
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="persona-footer">POC 1 · Demo Environment · v1.0</div>
+    </div>
+  );
+}
+
+function MainApp({ persona, onSignOut }) {
+  const [page, setPage] = useState("readme");
+  const allowedPages = persona.pages;
+  const ALL_PAGES = [
+    {id:"readme",   label:"Read Me",  icon:<span style={{fontSize:"1rem"}}>📖</span>},
+    {id:"overview", label:"Overview",  icon:<IBarChart/>},
+    {id:"products", label:"Products",  icon:<IPackage/>},
+    {id:"services", label:"Services",  icon:<ILayers/>},
+    {id:"customers",label:"Customers", icon:<IUsers/>},
+  ];
+  return (
+    <div style={{display:"flex",minHeight:"100vh"}}>
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          {/* App title at top */}
+          <div style={{marginBottom:"0.875rem"}}>
+            <div className="sidebar-title">DBS Platform</div>
+            <div className="sidebar-sub">Product &amp; Service Catalog</div>
+          </div>
+          {/* User identity below divider */}
+          <div style={{borderTop:"1px solid var(--sidebar-border)",paddingTop:"0.75rem",display:"flex",alignItems:"center",gap:"0.625rem"}}>
+            <div style={{width:"2.25rem",height:"2.25rem",borderRadius:"0.5rem",background:persona.avatarBg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.75rem",fontWeight:800,color:"#fff",flexShrink:0}}>{persona.initials}</div>
+            <div>
+              <div style={{fontSize:"0.9375rem",fontWeight:700,color:"#fff",lineHeight:1.2}}>{persona.name}</div>
+              <div style={{fontSize:"0.6875rem",fontWeight:600,color:persona.roleColor,marginTop:"0.125rem"}}>{persona.role}</div>
+            </div>
+          </div>
+        </div>
+        <nav className="sidebar-nav">
+          {ALL_PAGES.filter(p=>allowedPages.includes(p.id)).map(p=>(
+            <button key={p.id} className={`nav-item${page===p.id?" active":""}`} onClick={()=>setPage(p.id)}>
+              {p.icon}{p.label}
+            </button>
+          ))}
+        </nav>
+        <div style={{padding:"0.75rem",borderTop:"1px solid var(--sidebar-border)"}}>
+          <button onClick={onSignOut} style={{width:"100%",textAlign:"left",padding:"0.375rem 0.5rem",background:"none",border:"none",cursor:"pointer",fontSize:"0.75rem",color:"rgba(210,220,230,0.4)",fontFamily:"inherit",borderRadius:"0.25rem"}} onMouseEnter={e=>e.target.style.color="rgba(210,220,230,0.7)"} onMouseLeave={e=>e.target.style.color="rgba(210,220,230,0.4)"}>
+            ← Switch role
+          </button>
+        </div>
+      </aside>
+      <main className="main">
+        {page==="readme"    && <ReadMePage/>}
+        {page==="overview"  && <OverviewPage/>}
+        {page==="products"  && <ProductsPage/>}
+        {page==="services"  && <ServicesPage/>}
+        {page==="customers" && <CustomersPage/>}
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  const [persona, setPersona] = useState(null);
+  if (!persona) return <PersonaScreen onSelect={setPersona}/>;
+  return (
+    <CatalogProvider>
+      <MainApp persona={persona} onSignOut={()=>setPersona(null)}/>
+    </CatalogProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
