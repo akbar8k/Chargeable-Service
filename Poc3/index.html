@@ -179,6 +179,7 @@ function CatalogProvider({ children }) {
       products,services,customers,master,
       updateMaster:useCallback(m=>setM(m),[]),
       bulkUpdateProducts:useCallback(ps=>setP(v=>v.map(x=>{const u=ps.find(p=>p.id===x.id);return u||x;})),[]),
+      addProduct:useCallback(p=>setP(v=>[...v,{...p,id:gid("prod")}]),[]),
       updateProduct:useCallback(p=>setP(v=>v.map(x=>x.id===p.id?p:x)),[]),
       deleteProduct:useCallback(id=>setP(v=>v.filter(x=>x.id!==id)),[]),
       addService:useCallback(s=>setS(v=>[...v,{...s,id:gid("svc")}]),[]),
@@ -297,7 +298,7 @@ const OptionList = ({ standardOptions, chargeableOptions, onChangeBoth }) => {
     return (
       <div style={{marginBottom:14}}>
         <div className="section-label">{icon} {label}</div>
-        {av.length===0&&<div style={{fontSize:11,color:C.mutedText,fontStyle:"italic",padding:"6px 0"}}>No options enabled in Capability Registry</div>}
+        {av.length===0&&<div style={{fontSize:11,color:C.mutedText,fontStyle:"italic",padding:"6px 0"}}>No options enabled in Service Registry</div>}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{av.map(o=><OptionBtn key={o.id} o={o}/>)}</div>
       </div>
     );
@@ -453,19 +454,31 @@ function MasterCataloguePage() {
   const { master, updateMaster, products, customers, bulkUpdateProducts } = useCatalog();
   const [lockOpen,setLockOpen]=useState(false);
   const [draft,setDraft]=useState(null);
-  const [impactAlert,setImpactAlert]=useState(null); // {id, affectedProds, affectedCusts}
+  const [impactAlert,setImpactAlert]=useState(null);   // Standard→Add-on warning
+  const [gainAlert,setGainAlert]=useState(null);       // Add-on→Standard info
   const openLock=()=>{setDraft({enabled:[...master.enabled],addOnOnly:[...master.addOnOnly]});setLockOpen(true);};
-  const closeLock=()=>{setLockOpen(false);setDraft(null);setImpactAlert(null);};
-  const saveLock=()=>{updateMaster(draft);setLockOpen(false);setDraft(null);setImpactAlert(null);};
+  const closeLock=()=>{setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
+  const saveLock=()=>{updateMaster(draft);setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
   const toggleEnabled=id=>{const next={...draft};if(next.enabled.includes(id)){next.enabled=next.enabled.filter(x=>x!==id);next.addOnOnly=next.addOnOnly.filter(x=>x!==id);}else{next.enabled=[...next.enabled,id];}setDraft(next);};
   const toggleAddOn=id=>{
     if(!draft.enabled.includes(id))return;
     const isCurrentlyAO=draft.addOnOnly.includes(id);
     if(!isCurrentlyAO){
-      // Switching Standard → Add-on: check which products have it as standard
+      // Standard → Add-on: warn about products losing free access
       const affectedProds=products.filter(p=>p.standardOptions.includes(id));
       const affectedCusts=customers.filter(c=>{const p=products.find(pr=>pr.id===c.productId);return p&&p.standardOptions.includes(id);});
       if(affectedProds.length>0){setImpactAlert({id,affectedProds,affectedCusts});return;}
+    } else {
+      // Add-on → Standard: inform that all customers gain access
+      const affectedProds=products.filter(p=>p.chargeableOptions.includes(id));
+      setGainAlert({id,affectedProds,allCusts:customers});
+      // Cascade immediately: move from chargeableOptions → standardOptions on all products
+      const updatedProds=affectedProds.map(p=>({
+        ...p,
+        chargeableOptions:p.chargeableOptions.filter(x=>x!==id),
+        standardOptions:p.standardOptions.includes(id)?p.standardOptions:[...p.standardOptions,id],
+      }));
+      if(updatedProds.length>0) bulkUpdateProducts(updatedProds);
     }
     const next={...draft};
     next.addOnOnly=isCurrentlyAO?next.addOnOnly.filter(x=>x!==id):[...next.addOnOnly,id];
@@ -473,11 +486,9 @@ function MasterCataloguePage() {
   };
   const confirmImpact=()=>{
     const id=impactAlert.id;
-    // 1. Update master draft — move to addOnOnly
     const next={...draft};
     next.addOnOnly=[...next.addOnOnly,id];
     setDraft(next);
-    // 2. Cascade to affected products — move from standardOptions → chargeableOptions
     const updatedProds=impactAlert.affectedProds.map(p=>({
       ...p,
       standardOptions:p.standardOptions.filter(x=>x!==id),
@@ -503,11 +514,11 @@ function MasterCataloguePage() {
   };
   return (
     <div className="fade-in">
-      <PageHeader title="Capability Registry" description="Global governance — define all capabilities and classify each as Standard or Add-on Only." action={<Btn onClick={openLock}>⚙️ Configure Registry</Btn>}/>
+      <PageHeader title="Service Registry" description="Global governance — define all capabilities and classify each as Standard or Add-on Only." action={<Btn onClick={openLock}>⚙️ Configure Registry</Btn>}/>
       <div style={{padding:"12px 16px",background:"#F0EAFB",border:"1px solid #C9A8F5",borderRadius:8,marginBottom:14,fontSize:12,color:"#5A1FA0",display:"flex",alignItems:"flex-start",gap:10}}>
         <span style={{fontSize:14,flexShrink:0,marginTop:1}}>🔐</span>
         <div style={{flex:1}}>
-          <strong>Capability Registry</strong> — toggle each capability between Standard (included in products by default) or Add-on Only (🔒 — can only be unlocked via services, never Standard on any product).
+          <strong>Service Registry</strong> — toggle each capability between Standard (included in products by default) or Add-on Only (🔒 — can only be unlocked via services, never Standard on any product).
         </div>
       </div>
       <div style={{padding:"14px 16px",background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,marginBottom:18,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
@@ -549,10 +560,31 @@ function MasterCataloguePage() {
           </div>
         ))}
       </div>
-      <Modal open={lockOpen} onClose={closeLock} title="⚙️ Configure Capability Registry"
+      <Modal open={lockOpen} onClose={closeLock} title="⚙️ Configure Service Registry"
         footer={<><Btn variant="outline" onClick={closeLock}>Cancel</Btn><Btn onClick={saveLock}>Save Configuration</Btn></>}>
         {draft&&(
           <div>
+            {gainAlert&&(
+              <div style={{marginBottom:16,padding:"14px 16px",borderRadius:8,background:"#E8F5E9",border:"2px solid #A5D6A7"}}>
+                <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+                  <span style={{fontSize:20,flexShrink:0}}>✅</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#1B5E20",marginBottom:4}}>{gainAlert.id} — Promoted to Standard</div>
+                    <p style={{fontSize:12,color:"#2E7D32",lineHeight:1.6,margin:"0 0 10px 0"}}>This option is now <strong>Standard</strong>. All customers will automatically have free access — no service subscription required.</p>
+                    {gainAlert.affectedProds.length>0&&(
+                      <div style={{marginBottom:8}}>
+                        <div style={{fontSize:11,fontWeight:700,color:"#1B5E20",marginBottom:4}}>Products updated ({gainAlert.affectedProds.length}):</div>
+                        {gainAlert.affectedProds.map(p=>(
+                          <div key={p.id} style={{fontSize:12,color:"#2E7D32",marginBottom:2}}>• {p.name} — moved from Add-on → Standard</div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{fontSize:11,color:"#388E3C",fontStyle:"italic"}}>All {gainAlert.allCusts.length} customer{gainAlert.allCusts.length!==1?"s":""} now have access automatically.</div>
+                  </div>
+                  <button onClick={()=>setGainAlert(null)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:16,color:"#1B5E20",flexShrink:0}}>✕</button>
+                </div>
+              </div>
+            )}
             {impactAlert&&(
               <div style={{marginBottom:16,padding:"16px",borderRadius:8,background:"#FFFBEA",border:"2px solid #F59E0B"}}>
                 <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:12}}>
@@ -779,7 +811,7 @@ function ProductsPage() {
             <label style={{fontSize:13,fontWeight:700,display:"block",marginBottom:4}}>Payment Types & Features</label>
             {(master.addOnOnly.length>0||master.enabled.length<ALL_OPTIONS.length)&&(
               <div style={{padding:"7px 10px",background:"#F0EAFB",border:"1px solid #C9A8F5",borderRadius:6,marginBottom:8,fontSize:11,color:"#5A1FA0"}}>
-                🔐 <strong>Capability Registry active:</strong>{" "}
+                🔐 <strong>Service Registry active:</strong>{" "}
                 {ALL_OPTIONS.length-master.enabled.length>0&&`${ALL_OPTIONS.length-master.enabled.length} hidden (disabled globally)`}
                 {ALL_OPTIONS.length-master.enabled.length>0&&master.addOnOnly.length>0&&" · "}
                 {master.addOnOnly.length>0&&`${master.addOnOnly.length} are Add-on Only (🔒)`}
@@ -854,6 +886,73 @@ function ServicesPage() {
   );
 }
 
+const CustomerCapabilities = ({ product, custSvcs, master }) => {
+  const svcEnabled = new Set(custSvcs.flatMap(s => s.enabledOptions));
+  const std = product?.standardOptions || [];
+  const chg = product?.chargeableOptions || [];
+  const allOpts = [...std, ...chg.filter(id => !std.includes(id))];
+
+  const renderRow = (id, type) => {
+    const isStd = std.includes(id);
+    const isChg = chg.includes(id) && !isStd;
+    const isNonProd = type === "channel" || type === "advisory" || type === "external";
+    const isActive = isStd || (isChg && svcEnabled.has(id)) || (isNonProd && svcEnabled.has(id));
+    const via = custSvcs.filter(s => s.enabledOptions.includes(id)).map(s => s.name).join(", ");
+    return (
+      <div key={id} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 8px",borderRadius:6,
+        border:`1px solid ${isActive ? isStd ? C.successBorder : C.warningBorder : C.border}`,
+        background:isActive ? isStd ? C.successLight+"55" : C.warningLight+"55" : "#F9FAFB"}}>
+        <span style={{fontSize:11}}>{isActive ? "✅" : "❌"}</span>
+        <span style={{fontSize:11,fontWeight:500,color:isActive?C.text:C.mutedText,flex:1,lineHeight:1.3,textDecoration:isActive?"none":"line-through"}}>{id}</span>
+        {isStd && <Pill label="Std" bg={C.successLight} color={C.success} border={C.successBorder}/>}
+        {(isChg||isNonProd) && isActive && <Pill label={`via ${via}`} bg={C.primaryLight} color={C.primary} border="#BBCFE8"/>}
+        {(isChg||isNonProd) && !isActive && <Pill label="Add-on" bg={C.warningLight} color={C.warning} border={C.warningBorder}/>}
+      </div>
+    );
+  };
+
+  const payments = allOpts.filter(id => optById(id)?.type === "payment");
+  const features = allOpts.filter(id => optById(id)?.type === "feature");
+  const nonProdGroups = [
+    {key:"channel", label:"📡 Channels",  items: ALL_CHANNELS},
+    {key:"advisory",label:"🤝 Advisory",  items: ALL_ADVISORY},
+    {key:"external", label:"🔗 External", items: ALL_EXTERNAL},
+  ].map(g => ({...g, opts: g.items.filter(o => master.addOnOnly.includes(o.id))}))
+   .filter(g => g.opts.length > 0);
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>💳 Payment Types</div>
+          {payments.length === 0
+            ? <span style={{fontSize:11,color:C.mutedText}}>None</span>
+            : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{payments.map(id => renderRow(id,"payment"))}</div>}
+        </div>
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>✨ Product Features</div>
+          {features.length === 0
+            ? <span style={{fontSize:11,color:C.mutedText}}>None</span>
+            : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{features.map(id => renderRow(id,"feature"))}</div>}
+        </div>
+      </div>
+      {nonProdGroups.length > 0 && (
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Non-Product Add-on Capabilities</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+            {nonProdGroups.map(g => (
+              <div key={g.key}>
+                <div style={{fontSize:10,fontWeight:700,color:C.warning,marginBottom:4}}>{g.label}</div>
+                {g.opts.map(o => renderRow(o.id, g.key))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function CustomersPage() {
   const { customers, products, services, master, addCustomer, updateCustomer, deleteCustomer } = useCatalog();
   const [open,setOpen]=useState(false);const [editing,setEditing]=useState(null);
@@ -864,15 +963,12 @@ function CustomersPage() {
   const save=()=>{if(!name.trim()||!pid)return;editing?updateCustomer({...editing,name:name.trim(),productId:pid,serviceIds:sids}):addCustomer({name:name.trim(),productId:pid,serviceIds:sids});setOpen(false);};
   return (
     <div className="fade-in">
-      <PageHeader title="Customers" description="A customer's product defines Standard & Add-on options. Subscribed services unlock add-ons — filtered to what the product offers." action={<Btn onClick={openNew}>＋ Add Customer</Btn>}/>
+      <PageHeader title="Customers" description="A customer's product defines Standard & Add-on options. Subscribed services unlock add-ons." action={<Btn onClick={openNew}>＋ Add Customer</Btn>}/>
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
-        {customers.map(cust=>{
-          const product=products.find(p=>p.id===cust.productId);
-          const custSvcs=services.filter(s=>cust.serviceIds.includes(s.id));
-          const svcEnabled=new Set(custSvcs.flatMap(s=>s.enabledOptions));
-          const std=product?.standardOptions||[];const chg=product?.chargeableOptions||[];
-          const allOpts=[...std,...chg.filter(id=>!std.includes(id))];
-          return(
+        {customers.map(cust => {
+          const product = products.find(p => p.id === cust.productId);
+          const custSvcs = services.filter(s => cust.serviceIds.includes(s.id));
+          return (
             <div key={cust.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,padding:18}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
                 <div><div style={{fontWeight:700,fontSize:15}}>{cust.name}</div><div style={{fontSize:12,color:C.mutedText}}>{product?.name||"Unknown Product"}</div></div>
@@ -881,63 +977,13 @@ function CustomersPage() {
               <div style={{marginBottom:14}}>
                 <div className="section-label">Subscribed Services</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                  {custSvcs.length===0?<span style={{fontSize:12,color:C.mutedText}}>None — Standard options only</span>
-                  :custSvcs.map(s=><span key={s.id} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:6,background:C.accentLight,border:"1px solid #F5C99A",fontSize:12,fontWeight:600}}>{s.name}<span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:C.mutedText,fontWeight:400}}>({s.code})</span><SvcTypeBadge type={s.type}/></span>)}
+                  {custSvcs.length===0
+                    ? <span style={{fontSize:12,color:C.mutedText}}>None — Standard options only</span>
+                    : custSvcs.map(s=><span key={s.id} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:6,background:C.accentLight,border:"1px solid #F5C99A",fontSize:12,fontWeight:600}}>{s.name}<span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:C.mutedText,fontWeight:400}}>({s.code})</span><SvcTypeBadge type={s.type}/></span>)}
                 </div>
               </div>
-              <div className="section-label">Resolved Capabilities</div>
-              {(()=>{
-                const renderRow=(id,type)=>{
-                  const isStd=std.includes(id);const isChg=chg.includes(id)&&!isStd;
-                  const isNonProd=type==="channel"||type==="advisory"||type==="external";
-                  const isActive=isStd||(isChg&&svcEnabled.has(id))||(isNonProd&&svcEnabled.has(id));
-                  const via=custSvcs.filter(s=>s.enabledOptions.includes(id)).map(s=>s.name).join(", ");
-                  return(
-                    <div key={id} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 8px",borderRadius:6,border:`1px solid ${isActive?isStd?C.successBorder:C.warningBorder:C.border}`,background:isActive?isStd?C.successLight+"55":C.warningLight+"55":"#F9FAFB"}}>
-                      <span style={{fontSize:11}}>{isActive?"✅":"❌"}</span>
-                      <span style={{fontSize:11,fontWeight:500,color:isActive?C.text:C.mutedText,flex:1,lineHeight:1.3,textDecoration:isActive?"none":"line-through"}}>{id}</span>
-                      {isStd&&<Pill label="Std" bg={C.successLight} color={C.success} border={C.successBorder}/>}
-                      {(isChg||isNonProd)&&isActive&&<Pill label={`via ${via}`} bg={C.primaryLight} color={C.primary} border="#BBCFE8"/>}
-                      {(isChg||isNonProd)&&!isActive&&<Pill label="Add-on" bg={C.warningLight} color={C.warning} border={C.warningBorder}/>}
-                    </div>
-                  );
-                };
-                const payments=allOpts.filter(id=>optById(id)?.type==="payment");
-                const features=allOpts.filter(id=>optById(id)?.type==="feature");
-                // Non-product add-ons: channel/advisory/external from master addOnOnly
-                const nonProdGroups=[
-                  {key:"channel",label:"📡 Channels",items:ALL_CHANNELS},
-                  {key:"advisory",label:"🤝 Advisory",items:ALL_ADVISORY},
-                  {key:"external",label:"🔗 External",items:ALL_EXTERNAL},
-                ].map(g=>({...g,opts:g.items.filter(o=>master.addOnOnly.includes(o.id))})).filter(g=>g.opts.length>0);
-                return(
-                  <div style={{display:"flex",flexDirection:"column",gap:16}}>
-                    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                      <div>
-                        <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>💳 Payment Types</div>
-                        {payments.length===0?<span style={{fontSize:11,color:C.mutedText}}>None</span>:<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{payments.map(id=>renderRow(id,"payment"))}</div>}
-                      </div>
-                      <div>
-                        <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>✨ Product Features</div>
-                        {features.length===0?<span style={{fontSize:11,color:C.mutedText}}>None</span>:<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{features.map(id=>renderRow(id,"feature"))}</div>}
-                      </div>
-                    </div>
-                    {nonProdGroups.length>0&&(
-                      <div>
-                        <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Non-Product Add-on Capabilities</div>
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-                          {nonProdGroups.map(g=>(
-                            <div key={g.key}>
-                              <div style={{fontSize:10,fontWeight:700,color:C.warning,marginBottom:4}}>{g.label}</div>
-                              {g.opts.map(o=>renderRow(o.id,g.key))}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
+              <div className="section-label" style={{marginBottom:8}}>Resolved Capabilities</div>
+              <CustomerCapabilities product={product} custSvcs={custSvcs} master={master}/>
             </div>
           );
         })}
@@ -1003,7 +1049,7 @@ function ReadMePage() {
         <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 80% 60% at 60% 20%,hsla(248,80%,60%,0.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
         <div style={{fontSize:"0.625rem",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(200,205,255,0.42)",marginBottom:"0.75rem"}}>POC 3 · BACK OFFICE CONFIGURATION TOOL</div>
         <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"2rem",fontWeight:700,color:"#fff",letterSpacing:"-0.02em",lineHeight:1.2,margin:"0 0 0.875rem 0"}}>DBS Digital Banking<br/>Product & Service Catalogue</h1>
-        <p style={{fontSize:"0.9rem",color:"rgba(200,205,255,0.52)",lineHeight:1.7,maxWidth:620,margin:"0 0 1.5rem 0"}}>A role-separated back-office tool governing which payment types, features, channels, advisory, and external capabilities are available to each customer — through a four-layer model of Capability Registry → Products → Services → Customer Subscriptions.</p>
+        <p style={{fontSize:"0.9rem",color:"rgba(200,205,255,0.52)",lineHeight:1.7,maxWidth:620,margin:"0 0 1.5rem 0"}}>A role-separated back-office tool governing which payment types, features, channels, advisory, and external capabilities are available to each customer — through a four-layer model of Service Registry → Products → Services → Customer Subscriptions.</p>
         <div style={{display:"flex",alignItems:"center",gap:"1.25rem",flexWrap:"wrap"}}>
           {stats.map(({label,value,highlight})=>highlight?(
             <div key={label} style={{padding:"0.3rem 0.875rem",borderRadius:8,background:"hsla(248,55%,30%,0.55)",border:"1px solid hsla(248,65%,62%,0.30)"}}><span style={{fontSize:"0.875rem",fontWeight:700,color:"#fff"}}>{value} {label}</span></div>
@@ -1015,7 +1061,7 @@ function ReadMePage() {
 
       {/* Purpose */}
       <Section icon="🎯" title="Purpose & Problem Statement">
-        <p style={{marginBottom:10}}>Digital banking products offer different capabilities — some <strong>Standard</strong> (included by default) and others <strong>Add-on</strong> (unlocked via a subscribed service). Beyond product-linked capabilities, customers can also access <strong>non-product capabilities</strong> such as Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) — all governed at the Capability Registry level.</p>
+        <p style={{marginBottom:10}}>Digital banking products offer different capabilities — some <strong>Standard</strong> (included by default) and others <strong>Add-on</strong> (unlocked via a subscribed service). Beyond product-linked capabilities, customers can also access <strong>non-product capabilities</strong> such as Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) — all governed at the Service Registry level.</p>
         <p>This POC introduces a <strong>four-layer configuration model</strong> with role-based access, making explicit what is constrained at the top, what is configurable per product, what services unlock, and how a customer's full capability set is resolved end-to-end.</p>
       </Section>
 
@@ -1051,9 +1097,9 @@ function ReadMePage() {
       {/* Four-layer model */}
       <Section icon="🏗️" title="Four-Layer Configuration Model">
         {[
-          {num:1,layer:"Capability Registry",who:"Administrator",color:"hsl(248,55%,30%)",desc:"Defines the global universe of all option types — Payments, Features, Channels, Advisory, and External. Admin toggles each option between Standard (available to products) or Add-on Only (🔒 — can never be Standard on any product, only unlocked via services)."},
+          {num:1,layer:"Service Registry",who:"Administrator",color:"hsl(248,55%,30%)",desc:"Defines the global universe of all option types — Payments, Features, Channels, Advisory, and External. Admin toggles each option between Standard (available to products) or Add-on Only (🔒 — can never be Standard on any product, only unlocked via services)."},
           {num:2,layer:"Product Configuration",who:"Product Manager",color:"hsl(248,55%,38%)",desc:"Within master-enabled options, the Product Manager configures Payments and Features per product — marking each as Standard (included) or Add-on (chargeable). Channels, Advisory, and External are non-product capabilities and are not configured here."},
-          {num:3,layer:"Service Configuration",who:"Service Manager",color:"hsl(220,55%,42%)",desc:"Services are product-agnostic bundles that enable Add-on options. Only options marked Add-on in the Capability Registry appear here. Services can include Payments, Features, and non-product capabilities (Channels, Advisory, External). A live coverage panel shows which products benefit."},
+          {num:3,layer:"Service Configuration",who:"Service Manager",color:"hsl(220,55%,42%)",desc:"Services are product-agnostic bundles that enable Add-on options. Only options marked Add-on in the Service Registry appear here. Services can include Payments, Features, and non-product capabilities (Channels, Advisory, External). A live coverage panel shows which products benefit."},
           {num:4,layer:"Customer Assignment",who:"Customer Operations",color:C.success,desc:"A customer is assigned one product and can subscribe to multiple services. Standard options are always active. Add-on options (Payments/Features) activate only if a subscribed service covers them. Non-product capabilities (Channels, Advisory, External) activate via service subscription regardless of product."},
         ].map(({num,layer,who,color,desc})=>(
           <div key={num} style={{display:"flex",gap:14,marginBottom:16,paddingBottom:16,borderBottom:num<4?`1px solid ${C.border}`:"none"}}>
@@ -1073,10 +1119,10 @@ function ReadMePage() {
       <Section icon="💡" title="Key Concepts">
         <div className="grid-2" style={{gap:10}}>
           {[
-            {icon:"🔒",title:"Standard vs Add-on toggle",text:"In the Capability Registry, every option is toggled between Standard or Add-on Only using a segmented control. Add-on Only options can never appear as Standard on any product — they can only be unlocked via a service."},
+            {icon:"🔒",title:"Standard vs Add-on toggle",text:"In the Service Registry, every option is toggled between Standard or Add-on Only using a segmented control. Add-on Only options can never appear as Standard on any product — they can only be unlocked via a service."},
             {icon:"📦",title:"Product-scoped capabilities",text:"Payments and Features are product-scoped — each product independently defines which are Standard and which are Add-on. Channels, Advisory, and External are not product-scoped."},
             {icon:"🔧",title:"Service add-on unlocking",text:"Services show only Add-on options (amber theme). Subscribing a service unlocks those options for a customer — but only if the option is also chargeable on the customer's product (for Payments/Features) or non-product (for Channels/Advisory/External)."},
-            {icon:"📡",title:"Non-product capabilities",text:"Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) are governed globally in Capability Registry and unlocked per-customer via service subscriptions — independent of their product."},
+            {icon:"📡",title:"Non-product capabilities",text:"Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) are governed globally in Service Registry and unlocked per-customer via service subscriptions — independent of their product."},
             {icon:"👥",title:"Role-based access",text:"Four personas: Admin (full access), Product Manager (products only), Service Manager (services + coverage), Customer Ops (customer assignment). Each sees only their relevant sections."},
             {icon:"🔁",title:"Resolved capabilities",text:"A customer's full capability set is resolved dynamically — Standard options always on; product Add-ons activate via subscribed services; non-product capabilities (Channel/Advisory/External) activate if any subscribed service includes them."},
           ].map(({icon,title,text})=>(
@@ -1094,7 +1140,7 @@ function ReadMePage() {
           <div>
             <div style={{fontSize:11,fontWeight:700,color:C.success,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>✅ In Scope</div>
             {[
-              "Capability Registry governance — Standard vs Add-on toggle per option",
+              "Service Registry governance — Standard vs Add-on toggle per option",
               "Five option categories: Payments, Features, Channels, Advisory, External",
               "Product configuration — Payments & Features only (Standard or Add-on)",
               "Service configuration — Add-on options only, amber theme",
@@ -1134,9 +1180,14 @@ function MatrixPage() {
   const { products, services, master } = useCatalog();
   const [activeCell, setActiveCell] = useState(null);
   const [filterGroup, setFilterGroup] = useState("all");
+  const [filterSvc, setFilterSvc] = useState("all");
 
   const allCaps = PRODUCT_OPTION_GROUPS.flatMap(g => g.items).filter(o => master.enabled.includes(o.id));
-  const filtered = filterGroup === "all" ? allCaps : allCaps.filter(o => o.type === filterGroup);
+  const svcFiltered = filterSvc === "all" ? allCaps : allCaps.filter(o => {
+    const svc = services.find(s => s.id === filterSvc);
+    return svc ? svc.enabledOptions.includes(o.id) : true;
+  });
+  const filtered = filterGroup === "all" ? svcFiltered : svcFiltered.filter(o => o.type === filterGroup);
 
   const renderCell = (prod, opt) => {
     const isStd = prod.standardOptions.includes(opt.id);
@@ -1196,21 +1247,41 @@ function MatrixPage() {
   return (
     <div className="fade-in" onClick={()=>setActiveCell(null)}>
       <PageHeader title="360° Capability Matrix" description="Products as rows · Capabilities as columns · Click any cell to see supporting services."/>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
-        <span style={{fontSize:12,color:C.mutedText,fontWeight:600}}>Filter:</span>
-        {[{key:"all",label:"All"},{key:"payment",label:"💳 Payments"},{key:"feature",label:"✨ Features"}].map(f=>(
-          <button key={f.key} onClick={e=>{e.stopPropagation();setFilterGroup(f.key);setActiveCell(null);}}
-            style={{padding:"4px 12px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",
-              border:`1px solid ${filterGroup===f.key?C.primary:C.border}`,
-              background:filterGroup===f.key?C.primaryLight:"#fff",
-              color:filterGroup===f.key?C.primary:C.mutedText,transition:"all .12s"}}>
-            {f.label}
-          </button>
-        ))}
-        <div style={{marginLeft:"auto",display:"flex",gap:10,fontSize:11,color:C.mutedText,alignItems:"center",flexWrap:"wrap"}}>
-          <span style={{padding:"2px 8px",borderRadius:4,background:"#E8F5E9",color:"#1B5E20",border:"1px solid #A5D6A7",fontWeight:700}}>STD</span> Standard &nbsp;
-          <span style={{padding:"2px 8px",borderRadius:4,background:"#FFF8E1",color:"#E65100",border:"1px solid #FFCC80",fontWeight:700}}>ADD-ON</span> Add-on &nbsp;
-          <span style={{color:"#CBD5E1",fontWeight:700,fontSize:14}}>—</span> Not offered
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+        {/* Capability type filter */}
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+          <span style={{fontSize:12,color:C.mutedText,fontWeight:600,minWidth:90}}>Capability:</span>
+          {[{key:"all",label:"All"},{key:"payment",label:"💳 Payments"},{key:"feature",label:"✨ Features"}].map(f=>(
+            <button key={f.key} onClick={e=>{e.stopPropagation();setFilterGroup(f.key);setActiveCell(null);}}
+              style={{padding:"4px 12px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",
+                border:`1px solid ${filterGroup===f.key?C.primary:C.border}`,
+                background:filterGroup===f.key?C.primaryLight:"#fff",
+                color:filterGroup===f.key?C.primary:C.mutedText,transition:"all .12s"}}>
+              {f.label}
+            </button>
+          ))}
+          <div style={{marginLeft:"auto",display:"flex",gap:8,fontSize:11,color:C.mutedText,alignItems:"center",flexWrap:"wrap"}}>
+            <span style={{padding:"2px 8px",borderRadius:4,background:"#E8F5E9",color:"#1B5E20",border:"1px solid #A5D6A7",fontWeight:700}}>STD</span> Standard &nbsp;
+            <span style={{padding:"2px 8px",borderRadius:4,background:"#FFF8E1",color:"#E65100",border:"1px solid #FFCC80",fontWeight:700}}>ADD-ON</span> Add-on &nbsp;
+            <span style={{color:"#CBD5E1",fontWeight:700,fontSize:14}}>—</span> Not offered
+          </div>
+        </div>
+        {/* Service filter */}
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+          <span style={{fontSize:12,color:C.mutedText,fontWeight:600,minWidth:90}}>Service:</span>
+          {[{id:"all",name:"All Services",code:null},...services].map(s=>{
+            const active = filterSvc === s.id;
+            return(
+              <button key={s.id} onClick={e=>{e.stopPropagation();setFilterSvc(s.id);setActiveCell(null);}}
+                style={{padding:"4px 12px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:5,
+                  border:`1px solid ${active?C.warning:C.border}`,
+                  background:active?C.warningLight:"#fff",
+                  color:active?C.warning:C.mutedText,transition:"all .12s"}}>
+                {s.name}
+                {s.code&&<span style={{fontFamily:"'DM Mono',monospace",fontSize:10,opacity:0.7}}>({s.code})</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div style={{overflowX:"auto",borderRadius:10,border:`1px solid ${C.border}`,background:"#fff"}} onClick={e=>e.stopPropagation()}>
@@ -1251,7 +1322,7 @@ function MatrixPage() {
 
 
 const PERSONAS = {
-  admin:{id:"admin",name:"Admin",role:"Administrator",avatar:"AD",description:"Full access to all catalogue configuration — including Capability Registry, products, services, customers, and system overview.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"master",icon:"🔐",label:"Capability Registry"},{id:"products",icon:"📦",label:"Products"},{id:"services",icon:"🔧",label:"Services"},{id:"customers",icon:"👥",label:"Customers"},{id:"matrix",icon:"🔢",label:"360° Matrix"}],defaultPage:"readme"},
+  admin:{id:"admin",name:"Admin",role:"Administrator",avatar:"AD",description:"Full access to all catalogue configuration — including Service Registry, products, services, customers, and system overview.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"master",icon:"🔐",label:"Service Registry"},{id:"products",icon:"📦",label:"Products"},{id:"services",icon:"🔧",label:"Services"},{id:"customers",icon:"👥",label:"Customers"},{id:"matrix",icon:"🔢",label:"360° Matrix"}],defaultPage:"readme"},
   product_manager:{id:"product_manager",name:"Alex Morgan",role:"Product Manager",avatar:"AM",description:"Configures products — defines which payment types and features are Standard or Add-on required.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"products",icon:"📦",label:"Products"}],defaultPage:"readme"},
   service_manager:{id:"service_manager",name:"Jordan Lee",role:"Service Manager",avatar:"JL",description:"Configures global services, defines which options each service enables, monitors product coverage impact.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"services",icon:"🔧",label:"Services"}],defaultPage:"readme"},
   customer_ops:{id:"customer_ops",name:"Sam Clarke",role:"Customer Operations",avatar:"SC",description:"Manages customer accounts — assigns products, subscribes and unsubscribes services, reviews resolved capabilities.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"customers",icon:"👥",label:"Customers"}],defaultPage:"readme"},
@@ -1324,6 +1395,7 @@ function App() {
           {page==="master"    && <MasterCataloguePage/>}
           {page==="products"  && <ProductsPage/>}
           {page==="services"  && <ServicesPage/>}
+          {page==="customers" && <CustomersPage/>}
           {page==="matrix"    && <MatrixPage/>}
         </main>
       </div>
