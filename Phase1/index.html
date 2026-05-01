@@ -1,1 +1,1409 @@
-Test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DBS Product & Service Catalogue — POC 3</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:hsl(220,18%,96%);--card:hsl(0,0%,100%);--fg:hsl(222,25%,12%);
+  --border:hsl(220,16%,88%);--muted:hsl(220,14%,93%);--muted-fg:hsl(220,12%,52%);
+  --primary:hsl(248,60%,36%);--primary-light:hsla(248,60%,36%,0.10);
+  --success:hsl(152,55%,36%);--success-light:hsla(152,55%,36%,0.10);--success-border:hsla(152,55%,36%,0.30);
+  --warning:hsl(36,90%,50%);--warning-light:hsla(36,90%,50%,0.10);--warning-border:hsla(36,90%,50%,0.30);
+  --danger:hsl(0,70%,52%);--accent:hsl(28,88%,54%);--accent-light:hsla(28,88%,54%,0.10);
+  --text:hsl(222,25%,12%);--text-sub:hsl(220,14%,32%);--radius:0.5rem;
+  font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--fg);min-height:100vh}
+#root{min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:hsl(220,16%,82%);border-radius:3px}
+
+.sidebar{width:15.5rem;min-height:100vh;flex-shrink:0;background:linear-gradient(168deg,hsl(236,42%,7%) 0%,hsl(244,44%,10%) 40%,hsl(252,46%,15%) 100%);border-right:1px solid hsl(240,28%,12%);display:flex;flex-direction:column}
+.sidebar-header{padding:1.375rem 1.25rem 1rem;border-bottom:1px solid hsl(240,26%,13%)}
+.sidebar-brand{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#fff;letter-spacing:-0.01em;line-height:1.1}
+.sidebar-sub{font-size:0.6875rem;color:rgba(190,198,255,0.38);margin-top:0.25rem;letter-spacing:0.03em}
+.sidebar-user{padding:0.875rem 1.25rem;border-bottom:1px solid hsl(240,26%,13%);display:flex;align-items:center;gap:0.75rem}
+.sidebar-avatar{width:2.125rem;height:2.125rem;border-radius:0.5rem;background:hsla(248,60%,60%,0.28);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;flex-shrink:0;border:1px solid hsla(248,60%,70%,0.20)}
+.sidebar-user-name{font-size:0.8125rem;font-weight:600;color:#fff}
+.sidebar-user-role{font-size:0.6875rem;color:rgba(190,198,255,0.40);margin-top:0.1rem}
+.sidebar-nav{flex:1;padding:0.875rem 0.75rem;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:0.625rem;padding:0.6rem 0.875rem;border-radius:0.5rem;font-size:0.8125rem;font-weight:500;cursor:pointer;color:rgba(190,198,255,0.50);border:none;background:none;width:100%;text-align:left;transition:background 0.12s,color 0.12s;font-family:'DM Sans',sans-serif}
+.nav-item:hover{background:hsla(248,50%,100%,0.06);color:rgba(210,215,255,0.85)}
+.nav-item.active{background:hsla(248,65%,62%,0.18);color:hsl(248,90%,78%);font-weight:600}
+.nav-icon{font-size:0.9375rem;width:1.125rem;text-align:center;flex-shrink:0}
+.sidebar-footer{padding:0.875rem 0.75rem 1rem;border-top:1px solid hsl(240,26%,13%)}
+.sidebar-version{font-size:0.6875rem;color:rgba(190,198,255,0.22);padding:0 0.125rem;margin-top:0.25rem}
+
+.main{flex:1;padding:1.75rem 2.25rem;overflow:auto;min-width:0}
+
+.btn{display:inline-flex;align-items:center;gap:0.375rem;padding:0.5rem 1.1rem;border-radius:0.5rem;font-size:0.8125rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all 0.14s;font-family:'DM Sans',sans-serif;letter-spacing:0.01em}
+.btn-primary{background:hsl(248,55%,32%);color:#fff}.btn-primary:hover{background:hsl(248,55%,28%)}
+.btn-outline{background:transparent;border-color:hsl(248,30%,72%);color:hsl(248,50%,36%)}.btn-outline:hover{background:hsla(248,55%,30%,0.06)}
+.btn-ghost{background:transparent;color:var(--fg);border:none;padding:0.375rem 0.5rem;border-radius:0.375rem;cursor:pointer;display:inline-flex;align-items:center;font-family:'DM Sans',sans-serif;font-size:0.8125rem;transition:background 0.12s}.btn-ghost:hover{background:var(--muted)}
+.btn-danger-ghost{background:transparent;color:var(--danger);border:none;padding:0.375rem 0.5rem;border-radius:0.375rem;cursor:pointer;display:inline-flex;align-items:center;font-family:'DM Sans',sans-serif;transition:background 0.12s}.btn-danger-ghost:hover{background:hsla(0,72%,51%,0.08)}
+.btn-sm{padding:0.3rem 0.65rem;font-size:0.75rem}
+
+.dialog-overlay{position:fixed;inset:0;background:rgba(10,12,28,0.55);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(2px);animation:fadeOverlay 0.15s ease}
+@keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
+.dialog-box{background:var(--card);border-radius:0.875rem;width:100%;max-width:54rem;max-height:90vh;overflow-y:auto;box-shadow:0 24px 72px rgba(0,0,0,0.22);animation:slideUp 0.18s ease-out;border:1px solid var(--border)}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dialog-header{padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.dialog-title{font-size:1rem;font-weight:700}
+.dialog-body{padding:1.375rem 1.5rem;display:flex;flex-direction:column;gap:1rem}
+.dialog-footer{padding:0.875rem 1.5rem 1.25rem;display:flex;justify-content:flex-end;gap:0.5rem;border-top:1px solid var(--border)}
+
+.form-label{font-size:0.8rem;font-weight:600;color:hsl(220,12%,42%);display:block;margin-bottom:0.375rem}
+.form-input{padding:0.525rem 0.8rem;border:1.5px solid var(--border);border-radius:0.5rem;font-size:0.875rem;background:var(--card);color:var(--fg);width:100%;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.14s,box-shadow 0.14s}
+.form-input:focus{border-color:hsl(248,58%,38%);box-shadow:0 0 0 3px hsla(248,58%,38%,0.12)}
+.form-input.mono{font-family:'DM Mono',monospace}
+.select-input{padding:0.525rem 0.8rem;border:1.5px solid var(--border);border-radius:0.5rem;font-size:0.875rem;background:var(--card);color:var(--fg);width:100%;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer}
+
+.persona-screen{min-height:100vh;background:linear-gradient(168deg,hsl(236,42%,6%) 0%,hsl(244,44%,9%) 40%,hsl(252,46%,14%) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;position:relative;overflow:hidden}
+.persona-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 20%,hsla(248,80%,60%,0.08) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 20% 80%,hsla(180,70%,50%,0.05) 0%,transparent 60%);pointer-events:none}
+.persona-logo{text-align:center;margin-bottom:2.5rem;position:relative}
+.persona-logo-title{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:0.375rem}
+.persona-logo-sub{font-size:0.9375rem;color:hsl(248,30%,68%)}
+.persona-logo-line{width:3rem;height:2px;background:linear-gradient(90deg,transparent,hsl(248,70%,60%),transparent);margin:0.875rem auto 0;border-radius:2px}
+.persona-poc-badge{display:inline-block;margin-top:0.875rem;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;color:hsl(248,85%,76%);background:hsla(248,60%,60%,0.12);border:1px solid hsla(248,60%,60%,0.22);padding:0.25rem 0.875rem;border-radius:2rem}
+.persona-role-lbl{font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:hsl(248,20%,58%);margin-bottom:1.25rem;text-align:center}
+.persona-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;width:100%;max-width:1100px;position:relative}
+@media(max-width:900px){.persona-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:540px){.persona-cards{grid-template-columns:1fr}}
+.persona-card{background:hsla(244,32%,14%,0.90);border:1px solid hsla(244,28%,28%,0.80);border-radius:1rem;padding:1.5rem;cursor:pointer;transition:border-color 0.15s,background 0.15s,transform 0.15s;display:flex;flex-direction:column;gap:0.875rem;backdrop-filter:blur(8px)}
+.persona-card:hover{border-color:hsl(248,60%,55%);background:hsla(248,36%,18%,0.95);transform:translateY(-2px)}
+.persona-card-top{display:flex;align-items:flex-start;gap:0.875rem}
+.persona-avatar-lg{width:2.875rem;height:2.875rem;border-radius:0.625rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.875rem;font-weight:800;color:#fff;background:hsla(248,60%,55%,0.30);border:1px solid hsla(248,60%,70%,0.20)}
+.persona-name{font-size:1rem;font-weight:700;color:#fff;margin-bottom:0.25rem}
+.persona-role-badge{display:inline-block;padding:0.15rem 0.55rem;border-radius:0.3rem;font-size:0.6875rem;font-weight:700;background:hsla(248,60%,62%,0.22);color:hsl(248,85%,80%)}
+.persona-desc{font-size:0.8rem;color:hsl(244,18%,65%);line-height:1.6}
+.persona-pages{display:flex;gap:0.375rem;flex-wrap:wrap}
+.persona-page-chip{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.55rem;border-radius:0.375rem;background:hsl(244,28%,20%);border:1px solid hsl(244,24%,28%);font-size:0.6875rem;font-weight:500;color:hsl(244,18%,72%)}
+.persona-signin{font-size:0.8rem;font-weight:700;color:hsl(248,70%,72%);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:0.3rem;padding:0;margin-top:0.25rem;transition:color 0.12s}.persona-signin:hover{color:hsl(248,70%,84%)}
+.persona-footer{margin-top:2.25rem;font-size:0.6875rem;color:hsl(244,18%,40%);text-align:center}
+
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;gap:12px;flex-wrap:wrap}
+.page-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.02em}
+.page-desc{margin-top:0.25rem;font-size:0.8125rem;color:var(--muted-fg)}
+.stat-card{background:#fff;border-radius:0.75rem;padding:1rem 1.25rem;border:1px solid var(--border);display:flex;align-items:center;gap:0.875rem}
+.stat-icon{width:2.5rem;height:2.5rem;border-radius:0.625rem;display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0}
+.stat-value{font-size:1.625rem;font-weight:800;letter-spacing:-0.02em;line-height:1}
+.stat-label{font-size:0.75rem;color:var(--muted-fg);margin-top:0.2rem}
+.section-label{font-size:0.6875rem;font-weight:700;color:var(--muted-fg);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;display:flex;align-items:center;gap:5px}
+.pill{display:inline-flex;align-items:center;padding:0.15rem 0.55rem;border-radius:0.25rem;font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.875rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:0.875rem}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn 0.22s ease-out both}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, createContext, useContext } = React;
+
+const ALL_OPTIONS = [
+  { id:"SEPA EUR TRANSFER",type:"payment" },{ id:"P2P Transfer ETB",type:"payment" },
+  { id:"Local Transfer France",type:"payment" },{ id:"Local Transfer Ethiopia",type:"payment" },
+  { id:"Local Transfer Algeria",type:"payment" },{ id:"Internal Transfer EUR",type:"payment" },
+  { id:"Internal Transfer ETB",type:"payment" },{ id:"Internal Transfer DZD",type:"payment" },
+  { id:"One Off",type:"payment" },{ id:"SEPA Transfer France",type:"payment" },
+  { id:"Internal Transfer ARS V 5",type:"payment" },{ id:"P2P Transfer EUR",type:"payment" },
+  { id:"View Statement",type:"feature" },{ id:"Change Account Name",type:"feature" },
+  { id:"Savings goal",type:"feature" },{ id:"Order chequebook",type:"feature" },
+  { id:"Download Proof Of Account",type:"feature" },
+  { id:"Web",type:"channel" },{ id:"Mobile",type:"channel" },
+  { id:"Relationship Manager",type:"advisory" },{ id:"24/7 Support",type:"advisory" },
+  { id:"Quick Links",type:"external" },{ id:"Menu Links",type:"external" },
+];
+const optById = id => ALL_OPTIONS.find(o => o.id === id);
+const ALL_PAYMENTS  = ALL_OPTIONS.filter(o => o.type === "payment");
+const ALL_FEATURES  = ALL_OPTIONS.filter(o => o.type === "feature");
+const ALL_CHANNELS  = ALL_OPTIONS.filter(o => o.type === "channel");
+const ALL_ADVISORY  = ALL_OPTIONS.filter(o => o.type === "advisory");
+const ALL_EXTERNAL  = ALL_OPTIONS.filter(o => o.type === "external");
+
+const PRODUCT_OPTION_GROUPS = [
+  { key:"payment",  label:"Payment Types",     icon:"💳", items: ALL_PAYMENTS  },
+  { key:"feature",  label:"Product Features",  icon:"✨", items: ALL_FEATURES  },
+];
+const OPTION_GROUPS = [
+  { key:"payment",  label:"Payment Types",     icon:"💳", items: ALL_PAYMENTS  },
+  { key:"feature",  label:"Product Features",  icon:"✨", items: ALL_FEATURES  },
+  { key:"channel",  label:"Channels",          icon:"📡", items: ALL_CHANNELS  },
+  { key:"advisory", label:"Advisory",          icon:"🤝", items: ALL_ADVISORY  },
+  { key:"external", label:"External",          icon:"🔗", items: ALL_EXTERNAL  },
+];
+
+const INIT_MASTER = {
+  enabled: ALL_OPTIONS.map(o => o.id),
+  addOnOnly: ["SEPA EUR TRANSFER","SEPA Transfer France","P2P Transfer EUR","Order chequebook","Web","Relationship Manager","24/7 Support","Quick Links"],
+  defaultClassification: "standard",
+};
+const INIT_PRODUCTS = [
+  { id:"prod-1", name:"Current Account",
+    standardOptions:["View Statement","Change Account Name","Local Transfer Algeria","P2P Transfer ETB","Internal Transfer DZD","Local Transfer France","Internal Transfer EUR","Download Proof Of Account"],
+    chargeableOptions:["SEPA Transfer France","Order chequebook","SEPA EUR TRANSFER"] },
+  { id:"prod-2", name:"Premium Account",
+    standardOptions:["View Statement","Change Account Name","Savings goal","Local Transfer Algeria","P2P Transfer ETB","Internal Transfer DZD","Download Proof Of Account","Local Transfer France","Internal Transfer EUR","One Off"],
+    chargeableOptions:["SEPA EUR TRANSFER","SEPA Transfer France","P2P Transfer EUR","Order chequebook"] },
+];
+const INIT_SERVICES = [
+  { id:"svc-1", name:"S1", code:"A0", type:"paid",    enabledOptions:["SEPA Transfer France","Order chequebook"] },
+  { id:"svc-2", name:"S2", code:"A1", type:"bundled", enabledOptions:["P2P Transfer EUR","SEPA EUR TRANSFER"] },
+  { id:"svc-3", name:"S3", code:"B2", type:"partner", enabledOptions:["SEPA EUR TRANSFER","SEPA Transfer France","P2P Transfer EUR","Web","Relationship Manager","Quick Links"] },
+];
+const INIT_CUSTOMERS = [
+  { id:"cust-1", name:"Customer 1", productId:"prod-1", serviceIds:["svc-1"] },
+  { id:"cust-2", name:"Customer 2", productId:"prod-2", serviceIds:["svc-2"] },
+];
+
+const Ctx = createContext(null);
+let _n = 100; const gid = p => `${p}-${++_n}`;
+
+function CatalogProvider({ children }) {
+  const [products,setP]=useState(INIT_PRODUCTS);
+  const [services,setS]=useState(INIT_SERVICES);
+  const [customers,setC]=useState(INIT_CUSTOMERS);
+  const [master,setM]=useState(INIT_MASTER);
+  return (
+    <Ctx.Provider value={{
+      products,services,customers,master,
+      updateMaster:useCallback(m=>setM(m),[]),
+      bulkUpdateProducts:useCallback(ps=>setP(v=>v.map(x=>{const u=ps.find(p=>p.id===x.id);return u||x;})),[]),
+      addProduct:useCallback(p=>setP(v=>[...v,{...p,id:gid("prod")}]),[]),
+      updateProduct:useCallback(p=>setP(v=>v.map(x=>x.id===p.id?p:x)),[]),
+      deleteProduct:useCallback(id=>setP(v=>v.filter(x=>x.id!==id)),[]),
+      addService:useCallback(s=>setS(v=>[...v,{...s,id:gid("svc")}]),[]),
+      updateService:useCallback(s=>setS(v=>v.map(x=>x.id===s.id?s:x)),[]),
+      deleteService:useCallback(id=>setS(v=>v.filter(x=>x.id!==id)),[]),
+      addCustomer:useCallback(c=>setC(v=>[...v,{...c,id:gid("cust")}]),[]),
+      updateCustomer:useCallback(c=>setC(v=>v.map(x=>x.id===c.id?c:x)),[]),
+      deleteCustomer:useCallback(id=>setC(v=>v.filter(x=>x.id!==id)),[]),
+    }}>{children}</Ctx.Provider>
+  );
+}
+const useCatalog = () => useContext(Ctx);
+
+const C = {
+  border:"hsl(220,16%,88%)",muted:"hsl(220,14%,93%)",mutedText:"hsl(220,12%,52%)",
+  primary:"hsl(248,55%,32%)",primaryLight:"hsla(248,55%,32%,0.10)",
+  success:"hsl(152,55%,36%)",successLight:"hsla(152,55%,36%,0.10)",successBorder:"hsla(152,55%,36%,0.30)",
+  warning:"hsl(36,90%,50%)",warningLight:"hsla(36,90%,50%,0.10)",warningBorder:"hsla(36,90%,50%,0.30)",
+  danger:"hsl(0,70%,52%)",accent:"hsl(28,88%,54%)",accentLight:"hsla(28,88%,54%,0.10)",
+  text:"hsl(222,25%,12%)",textSub:"hsl(220,14%,32%)",
+};
+
+const Pill = ({ label, bg, color, border }) => (
+  <span className="pill" style={{background:bg,color,border:`1px solid ${border}`}}>{label}</span>
+);
+const SvcTypeBadge = ({ type }) => {
+  const cfgs={paid:{label:"Paid",bg:"#FCEAEA",color:"#CC2929",border:"#F5AAAA"},bundled:{label:"Bundled",bg:C.successLight,color:C.success,border:C.successBorder},partner:{label:"Partner",bg:C.primaryLight,color:C.primary,border:"#BBCFE8"}};
+  const cfg=cfgs[type]||cfgs.paid;
+  return <Pill label={cfg.label} bg={cfg.bg} color={cfg.color} border={cfg.border}/>;
+};
+const Btn = ({ children, onClick, variant="primary", size="md", disabled }) => {
+  const cls=`btn ${variant==="primary"?"btn-primary":variant==="outline"?"btn-outline":variant==="ghost"?"btn-ghost":variant==="danger"?"btn-danger-ghost":"btn-primary"}${size==="sm"?" btn-sm":""}`;
+  return <button className={cls} style={{opacity:disabled?0.45:1,cursor:disabled?"not-allowed":"pointer"}} onClick={disabled?undefined:onClick}>{children}</button>;
+};
+const Inp = ({ value, onChange, placeholder, mono }) => (
+  <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className={`form-input${mono?" mono":""}`}/>
+);
+const SelEl = ({ value, onChange, options }) => (
+  <select value={value} onChange={e=>onChange(e.target.value)} className="select-input">
+    {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+  </select>
+);
+const StatCard = ({ icon, label, value, bg }) => (
+  <div className="stat-card">
+    <div className="stat-icon" style={{background:bg}}>{icon}</div>
+    <div><div className="stat-value">{value}</div><div className="stat-label">{label}</div></div>
+  </div>
+);
+const Modal = ({ open, onClose, title, children, footer }) => {
+  if (!open) return null;
+  return (
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="dialog-box" onClick={e=>e.stopPropagation()}>
+        <div className="dialog-header"><span className="dialog-title">{title}</span><Btn variant="ghost" size="sm" onClick={onClose}>✕</Btn></div>
+        <div className="dialog-body">{children}</div>
+        {footer && <div className="dialog-footer">{footer}</div>}
+      </div>
+    </div>
+  );
+};
+const PageHeader = ({ title, description, action }) => (
+  <div className="page-header">
+    <div><h2 className="page-title">{title}</h2>{description && <p className="page-desc">{description}</p>}</div>
+    {action}
+  </div>
+);
+
+// Option chip (read-only) — matches Edit dialogue checkbox style
+const OptionChipRO = ({ o, isEnabled, isAddOn, isAOOnly }) => (
+  <div style={{position:"relative",display:"flex",alignItems:"center",gap:8,padding:"6px 9px",paddingRight:isAOOnly?26:9,borderRadius:7,background:!isEnabled?"transparent":isAddOn?C.warningLight+"CC":C.successLight+"88",border:`1px solid ${!isEnabled?"transparent":isAddOn?C.warningBorder:C.successBorder}`}}>
+    <div style={{width:20,height:20,borderRadius:5,flexShrink:0,border:`2px solid ${isEnabled?(isAddOn?C.warningBorder:C.successBorder):"#B8C5D4"}`,background:isEnabled?(isAddOn?C.warningLight:C.successLight):"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:isEnabled?(isAddOn?C.warning:C.success):"#ccc"}}>{isEnabled&&"✓"}</div>
+    <span style={{fontSize:12,color:isEnabled?C.text:C.mutedText,lineHeight:1.3,flex:1}}>{o.id}</span>
+    {isAOOnly&&<span style={{position:"absolute",top:3,right:5,fontSize:9}} title="Add-on Only">🔒</span>}
+  </div>
+);
+
+const OptionListReadOnly = ({ standardOptions, chargeableOptions }) => {
+  const { master } = useCatalog();
+  const isEnabled=id=>standardOptions.includes(id)||chargeableOptions.includes(id);
+  const isAddOn=id=>chargeableOptions.includes(id);
+  const Group = ({ label, icon, items }) => {
+    const av=items.filter(o=>master.enabled.includes(o.id));
+    return (
+      <div style={{marginBottom:16}}>
+        <div className="section-label" style={{marginBottom:6}}>{icon} {label}</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
+          {av.map(o=><OptionChipRO key={o.id} o={o} isEnabled={isEnabled(o.id)} isAddOn={isAddOn(o.id)} isAOOnly={master.addOnOnly.includes(o.id)}/>)}
+        </div>
+      </div>
+    );
+  };
+  return <div>{PRODUCT_OPTION_GROUPS.map(g=><Group key={g.key} label={g.label} icon={g.icon} items={g.items}/>)}</div>;
+};
+
+const OptionList = ({ standardOptions, chargeableOptions, onChangeBoth }) => {
+  const { master } = useCatalog();
+  const isEnabled=id=>standardOptions.includes(id)||chargeableOptions.includes(id);
+  const isAOOnly=id=>master.addOnOnly.includes(id);
+  const toggle=id=>{
+    if(isEnabled(id)){onChangeBoth(standardOptions.filter(x=>x!==id),chargeableOptions.filter(x=>x!==id));}
+    else{if(isAOOnly(id))onChangeBoth(standardOptions,[...chargeableOptions,id]);else onChangeBoth([...standardOptions,id],chargeableOptions);}
+  };
+  const OptionBtn = ({ o }) => {
+    const enabled=isEnabled(o.id);const addOn=isAOOnly(o.id);
+    return (
+      <button role="checkbox" aria-checked={enabled} onClick={()=>toggle(o.id)}
+        style={{position:"relative",display:"flex",alignItems:"center",gap:8,padding:"6px 9px",paddingRight:addOn?26:9,borderRadius:7,textAlign:"left",fontFamily:"'DM Sans',sans-serif",outline:"none",cursor:"pointer",transition:"background .12s, border-color .12s",background:!enabled?"transparent":addOn?C.warningLight+"CC":C.successLight+"88",border:`1px solid ${!enabled?"transparent":addOn?C.warningBorder:C.successBorder}`}}>
+        <div style={{width:20,height:20,borderRadius:5,flexShrink:0,pointerEvents:"none",border:`2px solid ${enabled?(addOn?C.warningBorder:C.successBorder):"#B8C5D4"}`,background:enabled?(addOn?C.warningLight:C.successLight):"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:enabled?(addOn?C.warning:C.success):"#ccc",transition:"all .12s"}}>{enabled&&"✓"}</div>
+        <span style={{fontSize:12,color:enabled?C.text:C.mutedText,lineHeight:1.3,flex:1}}>{o.id}</span>
+        {addOn&&<span style={{position:"absolute",top:3,right:5,fontSize:9}} title="Add-on Only">🔒</span>}
+      </button>
+    );
+  };
+  const Group = ({ label, icon, items }) => {
+    const av=items.filter(o=>master.enabled.includes(o.id));
+    return (
+      <div style={{marginBottom:14}}>
+        <div className="section-label">{icon} {label}</div>
+        {av.length===0&&<div style={{fontSize:11,color:C.mutedText,fontStyle:"italic",padding:"6px 0"}}>No options enabled in Service Registry</div>}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{av.map(o=><OptionBtn key={o.id} o={o}/>)}</div>
+      </div>
+    );
+  };
+  return <div>{PRODUCT_OPTION_GROUPS.map(g=><Group key={g.key} label={g.label} icon={g.icon} items={g.items}/>)}</div>;
+};
+
+const GlobalOptionChecklist = ({ enabledOptions, onToggle }) => {
+  const { master } = useCatalog();
+  const addOnIds = master.addOnOnly;
+  const CB = ({ checked }) => (
+    <div style={{width:18,height:18,borderRadius:4,flexShrink:0,pointerEvents:"none",border:`2px solid ${checked?C.warning:"#B8C5D4"}`,background:checked?C.warning:"#fff",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .12s"}}>
+      {checked&&<svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+    </div>
+  );
+  const Group = ({ label, icon, items }) => {
+    const visibleItems = addOnIds.length > 0
+      ? items  // product groups: show all
+      : items.filter(o => addOnIds.includes(o.id)); // non-product: add-on only
+    if (items.length === 0) return null;
+    return (
+      <div style={{marginBottom:12}}>
+        <div className="section-label">{icon} {label}</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
+          {items.map(o=>{
+            const isAO = addOnIds.includes(o.id);
+            const chk = enabledOptions.includes(o.id);
+            return (
+              <button key={o.id} role="checkbox" aria-checked={chk} onClick={()=>onToggle(o.id)}
+                style={{position:"relative",display:"flex",alignItems:"center",gap:8,padding:"6px 9px",paddingRight:isAO?26:9,borderRadius:7,textAlign:"left",fontFamily:"'DM Sans',sans-serif",outline:"none",cursor:"pointer",transition:"background .12s",
+                  background:chk?C.warningLight+"CC":"transparent",
+                  border:`1px solid ${chk?C.warningBorder:"transparent"}`}}>
+                <CB checked={chk}/>
+                <span style={{fontSize:12,lineHeight:1.3,color:chk?C.text:C.mutedText,flex:1}}>{o.id}</span>
+                {isAO&&<span style={{position:"absolute",top:3,right:5,fontSize:9}} title="Add-on Only">🔒</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+  const AddonGroup = ({ label, icon, items }) => {
+    const addOnItems = items.filter(o => addOnIds.includes(o.id));
+    if (addOnItems.length === 0) return null;
+    return (
+      <div style={{marginBottom:12}}>
+        <div className="section-label">{icon} {label}</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
+          {addOnItems.map(o=>{const chk=enabledOptions.includes(o.id);return(
+            <button key={o.id} role="checkbox" aria-checked={chk} onClick={()=>onToggle(o.id)}
+              style={{display:"flex",alignItems:"center",gap:8,padding:"6px 9px",borderRadius:7,textAlign:"left",fontFamily:"'DM Sans',sans-serif",outline:"none",cursor:"pointer",transition:"background .12s",background:chk?C.warningLight+"CC":"transparent",border:`1px solid ${chk?C.warningBorder:"transparent"}`}}>
+              <CB checked={chk}/><span style={{fontSize:12,lineHeight:1.3,color:chk?C.text:C.mutedText}}>{o.id}</span>
+              <span style={{fontSize:9,marginLeft:"auto",flexShrink:0}}>🔒</span>
+            </button>
+          );})}
+        </div>
+      </div>
+    );
+  };
+  return (
+    <div>
+      <Group icon="💳" label="Payment Types" items={ALL_PAYMENTS}/>
+      <Group icon="✨" label="Product Features" items={ALL_FEATURES}/>
+      <AddonGroup icon="📡" label="Channels" items={ALL_CHANNELS}/>
+      <AddonGroup icon="🤝" label="Advisory" items={ALL_ADVISORY}/>
+      <AddonGroup icon="🔗" label="External" items={ALL_EXTERNAL}/>
+    </div>
+  );
+};
+
+function CoverageSummaryPanel({ enabledOptions, products }) {
+  const [expanded,setExpanded]=useState(false);
+  if(enabledOptions.length===0) return (
+    <div style={{padding:"16px",background:C.muted,display:"flex",alignItems:"center",justifyContent:"center",minHeight:80}}>
+      <p style={{fontSize:11,color:C.mutedText,fontStyle:"italic",textAlign:"center"}}>Tick options to see product coverage.</p>
+    </div>
+  );
+  const stats=products.map(p=>({p,effective:enabledOptions.filter(id=>p.chargeableOptions.includes(id)),alreadyStd:enabledOptions.filter(id=>p.standardOptions.includes(id))}));
+  const withEffect=stats.filter(s=>s.effective.length>0);
+  const withStd=stats.filter(s=>s.alreadyStd.length>0);
+  const noEffect=stats.filter(s=>s.effective.length===0&&s.alreadyStd.length===0);
+  const totalUnlocks=withEffect.reduce((n,s)=>n+s.effective.length,0);
+  return (
+    <div style={{padding:"14px 16px",background:C.muted,display:"flex",flexDirection:"column",gap:10}}>
+      <div className="section-label">📊 Product Coverage</div>
+      <div style={{background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,overflow:"hidden"}}>
+        <div style={{padding:"10px 12px",borderBottom:`1px solid ${C.border}`}}>
+          <div style={{fontSize:13,fontWeight:700,color:withEffect.length>0?C.success:C.mutedText}}>
+            {withEffect.length>0?`Effective on ${withEffect.length} of ${products.length} product${products.length!==1?"s":""}`:`No effect on any product`}
+          </div>
+          {withEffect.length>0&&<div style={{fontSize:11,color:C.mutedText,marginTop:2}}>{totalUnlocks} add-on option{totalUnlocks!==1?"s":""} unlocked</div>}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",borderBottom:`1px solid ${C.border}`}}>
+          {[{count:withEffect.length,label:"Unlock options",color:C.success},{count:withStd.length,label:"Already enabled",color:C.warning},{count:noEffect.length,label:"No overlap",color:C.mutedText}].map(({count,label,color},i)=>(
+            <div key={label} style={{padding:"8px 10px",textAlign:"center",borderRight:i<2?`1px solid ${C.border}`:"none"}}>
+              <div style={{fontSize:18,fontWeight:800,color}}>{count}</div>
+              <div style={{fontSize:10,color:C.mutedText,marginTop:1}}>{label}</div>
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>setExpanded(!expanded)} style={{width:"100%",padding:"7px 12px",background:"transparent",border:"none",cursor:"pointer",fontSize:11,color:C.primary,fontWeight:600,textAlign:"left",display:"flex",alignItems:"center",gap:5}}>
+          <span style={{transition:"transform .2s",display:"inline-block",transform:expanded?"rotate(90deg)":"none"}}>▶</span>
+          {expanded?"Hide product details":"Show product details"}
+        </button>
+        {expanded&&(
+          <div style={{borderTop:`1px solid ${C.border}`,maxHeight:320,overflowY:"auto"}}>
+            {withEffect.length>0&&(
+              <div>
+                <div style={{padding:"5px 12px",fontSize:10,fontWeight:700,color:C.success,textTransform:"uppercase",letterSpacing:"0.05em",background:C.successLight+"66",borderBottom:`1px solid ${C.border}`}}>✓ Will unlock add-on options ({withEffect.length})</div>
+                {withEffect.map(({p,effective})=>(
+                  <div key={p.id} style={{padding:"7px 12px",borderBottom:`1px solid ${C.border}88`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:3}}>
+                      <span style={{fontSize:12,fontWeight:600}}>{p.name}</span>
+                      <span style={{fontSize:11,color:C.success,fontWeight:600}}>{effective.length} option{effective.length!==1?"s":""}</span>
+                    </div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                      {effective.map(id=><span key={id} style={{fontSize:10,padding:"1px 6px",borderRadius:3,background:C.successLight,color:C.success,border:`1px solid ${C.successBorder}`}}>{id}</span>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {withStd.length>0&&(
+              <div>
+                <div style={{padding:"5px 12px",fontSize:10,fontWeight:700,color:C.warning,textTransform:"uppercase",letterSpacing:"0.05em",background:C.warningLight+"66",borderBottom:`1px solid ${C.border}`}}>⚡ Already enabled as Standard ({withStd.length})</div>
+                {withStd.map(({p,alreadyStd})=>(
+                  <div key={p.id} style={{padding:"7px 12px",borderBottom:`1px solid ${C.border}88`}}>
+                    <div style={{fontSize:12,fontWeight:600,marginBottom:3}}>{p.name}</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                      {alreadyStd.map(id=><span key={id} style={{fontSize:10,padding:"1px 6px",borderRadius:3,background:C.warningLight,color:C.warning,border:`1px solid ${C.warningBorder}`}}>{id}</span>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {noEffect.length>0&&(
+              <div>
+                <div style={{padding:"5px 12px",fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.05em",background:"#F5F7FA",borderBottom:`1px solid ${C.border}`}}>No overlap ({noEffect.length})</div>
+                <div style={{padding:"7px 12px",display:"flex",flexWrap:"wrap",gap:6}}>
+                  {noEffect.map(({p})=><span key={p.id} style={{fontSize:11,color:C.mutedText}}>{p.name}</span>)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MasterCataloguePage() {
+  const { master, updateMaster, products, customers, bulkUpdateProducts } = useCatalog();
+  const [lockOpen,setLockOpen]=useState(false);
+  const [draft,setDraft]=useState(null);
+  const [impactAlert,setImpactAlert]=useState(null);   // Standard→Add-on warning
+  const [gainAlert,setGainAlert]=useState(null);       // Add-on→Standard info
+  const openLock=()=>{setDraft({enabled:[...master.enabled],addOnOnly:[...master.addOnOnly]});setLockOpen(true);};
+  const closeLock=()=>{setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
+  const saveLock=()=>{updateMaster(draft);setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
+  const toggleEnabled=id=>{const next={...draft};if(next.enabled.includes(id)){next.enabled=next.enabled.filter(x=>x!==id);next.addOnOnly=next.addOnOnly.filter(x=>x!==id);}else{next.enabled=[...next.enabled,id];}setDraft(next);};
+  const toggleAddOn=id=>{
+    if(!draft.enabled.includes(id))return;
+    const isCurrentlyAO=draft.addOnOnly.includes(id);
+    if(!isCurrentlyAO){
+      // Standard → Add-on: warn about products losing free access
+      const affectedProds=products.filter(p=>p.standardOptions.includes(id));
+      const affectedCusts=customers.filter(c=>{const p=products.find(pr=>pr.id===c.productId);return p&&p.standardOptions.includes(id);});
+      if(affectedProds.length>0){setImpactAlert({id,affectedProds,affectedCusts});return;}
+    } else {
+      // Add-on → Standard: inform that all customers gain access
+      const affectedProds=products.filter(p=>p.chargeableOptions.includes(id));
+      setGainAlert({id,affectedProds,allCusts:customers});
+      // Cascade immediately: move from chargeableOptions → standardOptions on all products
+      const updatedProds=affectedProds.map(p=>({
+        ...p,
+        chargeableOptions:p.chargeableOptions.filter(x=>x!==id),
+        standardOptions:p.standardOptions.includes(id)?p.standardOptions:[...p.standardOptions,id],
+      }));
+      if(updatedProds.length>0) bulkUpdateProducts(updatedProds);
+    }
+    const next={...draft};
+    next.addOnOnly=isCurrentlyAO?next.addOnOnly.filter(x=>x!==id):[...next.addOnOnly,id];
+    setDraft(next);
+  };
+  const confirmImpact=()=>{
+    const id=impactAlert.id;
+    const next={...draft};
+    next.addOnOnly=[...next.addOnOnly,id];
+    setDraft(next);
+    const updatedProds=impactAlert.affectedProds.map(p=>({
+      ...p,
+      standardOptions:p.standardOptions.filter(x=>x!==id),
+      chargeableOptions:p.chargeableOptions.includes(id)?p.chargeableOptions:[...p.chargeableOptions,id],
+    }));
+    bulkUpdateProducts(updatedProds);
+    setImpactAlert(null);
+  };
+  const disabledCount=ALL_OPTIONS.length-master.enabled.length;
+  const addOnCount=master.addOnOnly.length;
+  const affectedProds=products.filter(p=>p.standardOptions.some(id=>master.addOnOnly.includes(id))||p.standardOptions.some(id=>!master.enabled.includes(id))||p.chargeableOptions.some(id=>!master.enabled.includes(id)));
+  const MasterRow = ({ o, working }) => {
+    const isAO=working.addOnOnly.includes(o.id);
+    return (
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"8px 12px",borderRadius:7,background:isAO?C.warningLight+"99":C.successLight+"66",border:`1px solid ${isAO?C.warningBorder:C.successBorder}`,transition:"all .15s"}}>
+        <span style={{flex:1,fontSize:12,fontWeight:500,color:C.text}}>{o.id}</span>
+        <div style={{display:"flex",borderRadius:6,overflow:"hidden",border:`1px solid ${C.border}`,flexShrink:0}}>
+          <button onClick={()=>{if(isAO)toggleAddOn(o.id);}} style={{padding:"3px 10px",fontSize:11,fontWeight:600,cursor:isAO?"pointer":"default",background:!isAO?C.success:"#fff",color:!isAO?"#fff":C.mutedText,border:"none",transition:"all .12s"}}>✓ Standard</button>
+          <button onClick={()=>{if(!isAO)toggleAddOn(o.id);}} style={{padding:"3px 10px",fontSize:11,fontWeight:600,cursor:!isAO?"pointer":"default",background:isAO?C.warning:"#fff",color:isAO?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .12s"}}>🔒 Add-on</button>
+        </div>
+      </div>
+    );
+  };
+  return (
+    <div className="fade-in">
+      <PageHeader title="Service Registry" description="Global governance — define all capabilities and classify each as Standard or Add-on Only." action={<Btn onClick={openLock}>⚙️ Configure Registry</Btn>}/>
+      <div style={{padding:"12px 16px",background:"#F0EAFB",border:"1px solid #C9A8F5",borderRadius:8,marginBottom:14,fontSize:12,color:"#5A1FA0",display:"flex",alignItems:"flex-start",gap:10}}>
+        <span style={{fontSize:14,flexShrink:0,marginTop:1}}>🔐</span>
+        <div style={{flex:1}}>
+          <strong>Service Registry</strong> — toggle each capability between Standard (included in products by default) or Add-on Only (🔒 — can only be unlocked via services, never Standard on any product).
+        </div>
+      </div>
+      <div style={{padding:"14px 16px",background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,marginBottom:18,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+        <div style={{flex:1,minWidth:200}}>
+          <div style={{fontSize:12,fontWeight:700,color:C.text,marginBottom:2}}>Default classification for new capabilities</div>
+          <div style={{fontSize:11,color:C.mutedText}}>Any newly added Payment, Feature, Channel, Advisory or External option will default to this classification.</div>
+        </div>
+        <div style={{display:"flex",borderRadius:7,overflow:"hidden",border:`1px solid ${C.border}`,flexShrink:0}}>
+          <button onClick={()=>updateMaster({...master,defaultClassification:"standard"})}
+            style={{padding:"7px 18px",fontSize:12,fontWeight:600,cursor:"pointer",background:master.defaultClassification!=="addon"?C.success:"#fff",color:master.defaultClassification!=="addon"?"#fff":C.mutedText,border:"none",transition:"all .15s"}}>✓ Standard</button>
+          <button onClick={()=>updateMaster({...master,defaultClassification:"addon"})}
+            style={{padding:"7px 18px",fontSize:12,fontWeight:600,cursor:"pointer",background:master.defaultClassification==="addon"?C.warning:"#fff",color:master.defaultClassification==="addon"?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .15s"}}>🔒 Add-on Only</button>
+        </div>
+      </div>
+      <div className="grid-4" style={{marginBottom:22}}>
+        <StatCard icon="✅" label="Globally Enabled" value={master.enabled.length} bg={C.successLight}/>
+        <StatCard icon="🚫" label="Globally Disabled" value={disabledCount} bg="#F5F7FA"/>
+        <StatCard icon="🔒" label="Add-on Only" value={addOnCount} bg={C.warningLight}/>
+        <StatCard icon="⚠️" label="Products with conflicts" value={affectedProds.length} bg={affectedProds.length>0?"#FCEAEA":C.muted}/>
+      </div>
+      {affectedProds.length>0&&<div style={{padding:"10px 14px",background:"#FCEAEA",border:"1px solid #F5AAAA",borderRadius:8,marginBottom:18,fontSize:12,color:C.danger}}><strong>⚠️ Conflict:</strong> {affectedProds.length} product(s) violate current Master rules — {affectedProds.map(p=>p.name).join(", ")}.</div>}
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        {OPTION_GROUPS.map(({key,label,icon,items})=>(
+          <div key={key} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
+            <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:8}}>{icon} {label}</div>
+            <div style={{padding:14,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
+              {items.map(o=>{const isEn=master.enabled.includes(o.id);const isAO=master.addOnOnly.includes(o.id);
+                const statusBg  = !isEn?"#F5F7FA":isAO?"#FFF3E0":"#E8F5E9";
+                const statusClr = !isEn?C.mutedText:isAO?"#E65100":"#1B5E20";
+                const statusBdr = !isEn?C.border:isAO?"#FFCC80":"#A5D6A7";
+                const statusLbl = !isEn?"DISABLED":isAO?"🔒 ADD-ON":"✓ STANDARD";
+                return(
+                <div key={o.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",borderRadius:6,background:"#fff",border:`1px solid ${C.border}`,gap:8,opacity:!isEn?0.6:1}}>
+                  <span style={{fontSize:12,color:isEn?C.text:C.mutedText,textDecoration:isEn?"none":"line-through"}}>{o.id}</span>
+                  <span style={{flexShrink:0,fontSize:10,fontWeight:700,letterSpacing:"0.05em",padding:"2px 8px",borderRadius:4,background:statusBg,color:statusClr,border:`1px solid ${statusBdr}`}}>{statusLbl}</span>
+                </div>
+              );})}
+            </div>
+          </div>
+        ))}
+      </div>
+      <Modal open={lockOpen} onClose={closeLock} title="⚙️ Configure Service Registry"
+        footer={<><Btn variant="outline" onClick={closeLock}>Cancel</Btn><Btn onClick={saveLock}>Save Configuration</Btn></>}>
+        {draft&&(
+          <div>
+            {gainAlert&&(
+              <div style={{marginBottom:16,padding:"14px 16px",borderRadius:8,background:"#E8F5E9",border:"2px solid #A5D6A7"}}>
+                <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+                  <span style={{fontSize:20,flexShrink:0}}>✅</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#1B5E20",marginBottom:4}}>{gainAlert.id} — Promoted to Standard</div>
+                    <p style={{fontSize:12,color:"#2E7D32",lineHeight:1.6,margin:"0 0 10px 0"}}>This option is now <strong>Standard</strong>. All customers will automatically have free access — no service subscription required.</p>
+                    {gainAlert.affectedProds.length>0&&(
+                      <div style={{marginBottom:8}}>
+                        <div style={{fontSize:11,fontWeight:700,color:"#1B5E20",marginBottom:4}}>Products updated ({gainAlert.affectedProds.length}):</div>
+                        {gainAlert.affectedProds.map(p=>(
+                          <div key={p.id} style={{fontSize:12,color:"#2E7D32",marginBottom:2}}>• {p.name} — moved from Add-on → Standard</div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{fontSize:11,color:"#388E3C",fontStyle:"italic"}}>All {gainAlert.allCusts.length} customer{gainAlert.allCusts.length!==1?"s":""} now have access automatically.</div>
+                  </div>
+                  <button onClick={()=>setGainAlert(null)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:16,color:"#1B5E20",flexShrink:0}}>✕</button>
+                </div>
+              </div>
+            )}
+            {impactAlert&&(
+              <div style={{marginBottom:16,padding:"16px",borderRadius:8,background:"#FFFBEA",border:"2px solid #F59E0B"}}>
+                <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:12}}>
+                  <span style={{fontSize:20,flexShrink:0}}>⚠️</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#92400E",marginBottom:4}}>Impact Warning — {impactAlert.id}</div>
+                    <p style={{fontSize:12,color:"#78350F",lineHeight:1.6,margin:"0 0 10px 0"}}>
+                      This option is currently <strong>Standard (free)</strong> on some products. Changing it to <strong>Add-on Only</strong> means customers will lose free access and will need to subscribe to a service to retain it.
+                    </p>
+                    <div style={{marginBottom:8}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#92400E",marginBottom:4}}>⚠️ Affected products ({impactAlert.affectedProds.length}):</div>
+                      {impactAlert.affectedProds.map(p=>(
+                        <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#78350F",marginBottom:3}}>
+                          <span>•</span><span style={{fontWeight:600}}>{p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{padding:"10px 12px",borderRadius:6,background:"#FEF3C7",border:"1px solid #FCD34D",fontSize:12,color:"#78350F",lineHeight:1.6}}>
+                      <strong>Customer impact:</strong> All customers on the affected products above will lose free access to this option. Notify them to subscribe to the relevant add-on service, or proactively add a service subscription before enabling this change.
+                      {impactAlert.affectedCusts.length>0&&<div style={{marginTop:6,fontWeight:600}}>Affected customers ({impactAlert.affectedCusts.length}): {impactAlert.affectedCusts.map(c=>c.name).join(", ")}</div>}
+                    </div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+                  <Btn variant="outline" onClick={()=>setImpactAlert(null)}>Cancel Change</Btn>
+                  <Btn onClick={confirmImpact} style={{background:C.warning,borderColor:C.warning}}>Confirm — Switch to Add-on</Btn>
+                </div>
+              </div>
+            )}
+            <div style={{padding:"10px 12px",background:"#F0EAFB",borderRadius:7,border:"1px solid #C9A8F5",marginBottom:16,fontSize:12,color:"#5A1FA0"}}>
+              <strong>Instructions:</strong> Toggle each option between <strong>Standard</strong> (available to all products) or <strong>🔒 Add-on</strong> (chargeable only). · {draft.addOnOnly.length} Add-on Only · {ALL_OPTIONS.length - draft.addOnOnly.length} Standard
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              {OPTION_GROUPS.map(({key,label,items})=>(
+                <div key={key}>
+                  <div className="section-label" style={{marginBottom:8}}>{label}</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
+                    {items.map(o=><MasterRow key={o.id} o={o} working={draft}/>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+function OverviewPage() {
+  const { products, services, customers, master } = useCatalog();
+  return (
+    <div className="fade-in">
+      <PageHeader title="Overview" description="DBS Digital Banking Product & Service Catalog — Back Office"/>
+      <div className="grid-3" style={{marginBottom:22}}>
+        <StatCard icon="📦" label="Products" value={products.length} bg={C.primaryLight}/>
+        <StatCard icon="🔧" label="Services" value={services.length} bg={C.accentLight}/>
+        <StatCard icon="👥" label="Customers" value={customers.length} bg="#E0F2FA"/>
+      </div>
+      <div style={{display:"flex",gap:16,padding:"9px 14px",background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,marginBottom:18,fontSize:12,flexWrap:"wrap",alignItems:"center"}}>
+        <span style={{fontWeight:700,color:C.textSub,fontSize:11}}>LEGEND:</span>
+        {[{bg:C.successLight,border:C.successBorder,icon:"✓",color:C.success,label:"Standard — free with product"},{bg:C.warningLight,border:C.warningBorder,icon:"🔒",color:C.warning,label:"Add-on — unlocked via a service"},{bg:"#fff",border:"#B8C5D4",icon:null,color:"#ccc",label:"Not offered"}].map(({bg,border,icon,color,label})=>(
+          <span key={label} style={{display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:18,height:18,borderRadius:4,background:bg,border:`2px solid ${border}`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:11,color}}>{icon}</div>
+            {label}
+          </span>
+        ))}
+      </div>
+      <div className="grid-2" style={{marginBottom:18}}>
+        <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
+          <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14}}>Products — Option Configuration</div>
+          <div style={{padding:14,display:"flex",flexDirection:"column",gap:10}}>
+            {products.map(p=>(
+              <div key={p.id} style={{padding:12,borderRadius:8,background:C.muted,border:`1px solid ${C.border}`}}>
+                <div style={{fontWeight:600,fontSize:13,marginBottom:2}}>{p.name}</div>
+                <div style={{fontSize:11,color:C.mutedText,marginBottom:10}}><span style={{color:C.success,fontWeight:600}}>{p.standardOptions.length} standard</span>{" · "}<span style={{color:C.warning,fontWeight:600}}>{p.chargeableOptions.length} add-on</span></div>
+                {[["✓ Standard",p.standardOptions,C.success,C.successLight,C.successBorder],["🔒 Add-on required",p.chargeableOptions,C.warning,C.warningLight,C.warningBorder]].map(([lbl,ids,color,bg,border])=>(
+                  <div key={lbl} style={{marginBottom:6}}>
+                    <div style={{fontSize:10,fontWeight:700,color,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>{lbl}</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                      {ids.length===0&&<span style={{fontSize:11,color:C.mutedText}}>None</span>}
+                      {ids.map(id=><span key={id} style={{fontSize:11,padding:"2px 8px",borderRadius:4,fontWeight:500,background:bg,color,border:`1px solid ${border}`}}>{id}</span>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
+          <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14}}>Services — Global<span style={{fontSize:11,fontWeight:400,color:C.mutedText,marginLeft:8}}>(product-agnostic)</span></div>
+          <div style={{padding:14,display:"flex",flexDirection:"column",gap:10}}>
+            {services.map(s=>(
+              <div key={s.id} style={{padding:12,borderRadius:8,background:C.muted,border:`1px solid ${C.border}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <div><span style={{fontWeight:700,fontSize:13}}>{s.name}</span><span style={{fontSize:11,color:C.mutedText,marginLeft:8}}>{s.enabledOptions.length} option{s.enabledOptions.length!==1?"s":""}</span></div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontFamily:"'DM Mono',monospace",fontSize:11,background:"#fff",border:`1px solid ${C.border}`,borderRadius:4,padding:"1px 6px"}}>{s.code}</span>
+                    <SvcTypeBadge type={s.type}/>
+                  </div>
+                </div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                  {s.enabledOptions.map(id=><span key={id} style={{fontSize:11,padding:"2px 8px",borderRadius:4,fontWeight:500,background:C.primaryLight,color:C.primary,border:"1px solid #BBCFE8"}}>{id}</span>)}
+                  {s.enabledOptions.length===0&&<span style={{fontSize:11,color:C.mutedText}}>No options configured</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
+        <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14}}>Customer Subscriptions & Resolved Capabilities</div>
+        <div style={{padding:14,display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          {customers.map(cust=>{
+            const product=products.find(p=>p.id===cust.productId);
+            const custSvcs=services.filter(s=>cust.serviceIds.includes(s.id));
+            const svcEnabled=new Set(custSvcs.flatMap(s=>s.enabledOptions));
+            const std=product?.standardOptions||[];const chg=product?.chargeableOptions||[];
+            const allOpts=[...std,...chg.filter(id=>!std.includes(id))];
+            return (
+              <div key={cust.id} style={{padding:14,borderRadius:8,border:`1px solid ${C.border}`,background:"#FAFCFF"}}>
+                <div style={{fontWeight:700,fontSize:13,marginBottom:2}}>{cust.name}</div>
+                <div style={{fontSize:11,color:C.mutedText,marginBottom:10}}>{product?.name} — {custSvcs.map(s=>s.name).join(", ")||"No services subscribed"}</div>
+                {(()=>{
+                  const renderRow=(id,type)=>{
+                    const isStd=std.includes(id);const isChg=chg.includes(id)&&!isStd;
+                    const isNonProd=type==="channel"||type==="advisory"||type==="external";
+                    const isActive=isStd||(isChg&&svcEnabled.has(id))||(isNonProd&&svcEnabled.has(id));
+                    const via=custSvcs.filter(s=>s.enabledOptions.includes(id)).map(s=>s.name).join(", ");
+                    return(
+                      <div key={id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,padding:"3px 0",borderBottom:`1px solid ${C.border}66`}}>
+                        <span style={{fontSize:12}}>{isActive?"✅":"❌"}</span>
+                        <span style={{flex:1,color:isActive?C.text:C.mutedText,textDecoration:isActive?"none":"line-through"}}>{id}</span>
+                        {isStd&&<Pill label="Std" bg={C.successLight} color={C.success} border={C.successBorder}/>}
+                        {(isChg||isNonProd)&&isActive&&<Pill label={`via ${via}`} bg={C.primaryLight} color={C.primary} border="#BBCFE8"/>}
+                        {(isChg||isNonProd)&&!isActive&&<Pill label="Add-on" bg={C.warningLight} color={C.warning} border={C.warningBorder}/>}
+                      </div>
+                    );
+                  };
+                  const payments=allOpts.filter(id=>optById(id)?.type==="payment");
+                  const features=allOpts.filter(id=>optById(id)?.type==="feature");
+                  const nonProdGroups=[
+                    {key:"channel",label:"📡 Channels",items:ALL_CHANNELS},
+                    {key:"advisory",label:"🤝 Advisory",items:ALL_ADVISORY},
+                    {key:"external",label:"🔗 External",items:ALL_EXTERNAL},
+                  ].map(g=>({...g,opts:g.items.filter(o=>master.addOnOnly.includes(o.id))})).filter(g=>g.opts.length>0);
+                  return(
+                    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                        <div><div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>💳 Payments</div>{payments.length===0?<span style={{fontSize:11,color:C.mutedText}}>None</span>:payments.map(id=>renderRow(id,"payment"))}</div>
+                        <div><div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>✨ Features</div>{features.length===0?<span style={{fontSize:11,color:C.mutedText}}>None</span>:features.map(id=>renderRow(id,"feature"))}</div>
+                      </div>
+                      {nonProdGroups.length>0&&(
+                        <div>
+                          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Non-Product Capabilities</div>
+                          <div style={{display:"grid",gridTemplateColumns:`repeat(${nonProdGroups.length},1fr)`,gap:10}}>
+                            {nonProdGroups.map(g=>(
+                              <div key={g.key}>
+                                <div style={{fontSize:10,fontWeight:700,color:C.warning,marginBottom:4}}>{g.label}</div>
+                                {g.opts.map(o=>renderRow(o.id,g.key))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductsPage() {
+  const { products, services, addProduct, updateProduct, deleteProduct, master } = useCatalog();
+  const [open,setOpen]=useState(false);const [editing,setEditing]=useState(null);
+  const [name,setName]=useState("");const [stdOpts,setStd]=useState([]);const [chgOpts,setChg]=useState([]);
+  const openNew=()=>{setEditing(null);setName("");setStd([]);setChg([]);setOpen(true);};
+  const openEdit=p=>{setEditing(p);setName(p.name);setStd([...p.standardOptions]);setChg([...p.chargeableOptions]);setOpen(true);};
+  const save=()=>{if(!name.trim())return;editing?updateProduct({...editing,name:name.trim(),standardOptions:stdOpts,chargeableOptions:chgOpts}):addProduct({name:name.trim(),standardOptions:stdOpts,chargeableOptions:chgOpts});setOpen(false);};
+  return (
+    <div className="fade-in">
+      <PageHeader title="Products" description="Configure which options are Standard or Add-on required per product." action={<Btn onClick={openNew}>＋ Add Product</Btn>}/>
+      <div style={{display:"flex",gap:16,fontSize:12,marginBottom:18,padding:"8px 14px",background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,flexWrap:"wrap",alignItems:"center"}}>
+        <span style={{fontWeight:700,color:C.textSub,fontSize:11}}>LEGEND:</span>
+        {[{bg:C.successLight,border:C.successBorder,icon:"✓",color:C.success,label:"Standard — free"},{bg:C.warningLight,border:C.warningBorder,icon:"✓",color:C.warning,label:"Add-on (🔒 from Master)"},{bg:"#F8FAFB",border:C.border,icon:null,color:"#ccc",label:"Disabled"}].map(({bg,border,icon,color,label})=>(
+          <span key={label} style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:18,height:18,borderRadius:4,background:bg,border:`2px solid ${border}`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:11,color}}>{icon}</div>{label}</span>
+        ))}
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        {products.map(p=>{
+          const linkedSvcs=services.filter(s=>s.enabledOptions.some(id=>p.chargeableOptions.includes(id)));
+          return(
+            <div key={p.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden"}}>
+              <div style={{padding:"13px 18px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div>
+                  <span style={{fontWeight:700,fontSize:15}}>{p.name}</span>
+                  <span style={{fontSize:12,color:C.mutedText,marginLeft:10}}><span style={{color:C.success,fontWeight:600}}>{p.standardOptions.length} standard</span>{" · "}<span style={{color:C.warning,fontWeight:600}}>{p.chargeableOptions.length} add-on 🔒</span></span>
+                </div>
+                <div style={{display:"flex",gap:4}}><Btn variant="ghost" size="sm" onClick={()=>openEdit(p)}>✏️ Edit</Btn><Btn variant="danger" size="sm" onClick={()=>deleteProduct(p.id)}>🗑</Btn></div>
+              </div>
+              <div style={{padding:"16px 18px"}}><OptionListReadOnly standardOptions={p.standardOptions} chargeableOptions={p.chargeableOptions}/></div>
+              {linkedSvcs.length>0&&(
+                <div style={{padding:"10px 18px 14px",borderTop:`1px solid ${C.border}`}}>
+                  <div className="section-label">🔗 Services covering add-on options</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                    {linkedSvcs.map(s=><span key={s.id} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:6,background:C.muted,border:`1px solid ${C.border}`,fontSize:12,fontWeight:600}}>{s.name}<span style={{fontFamily:"'DM Mono',monospace",fontWeight:400,color:C.mutedText,fontSize:11}}>({s.code})</span></span>)}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <Modal open={open} onClose={()=>setOpen(false)} title={editing?"Edit Product":"New Product"}
+        footer={<><Btn variant="outline" onClick={()=>setOpen(false)}>Cancel</Btn><Btn onClick={save}>{editing?"Update":"Create"}</Btn></>}>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div><label className="form-label">Product Name</label><Inp value={name} onChange={setName} placeholder="e.g. Savings Account"/></div>
+          <div>
+            <label style={{fontSize:13,fontWeight:700,display:"block",marginBottom:4}}>Payment Types & Features</label>
+            {(master.addOnOnly.length>0||master.enabled.length<ALL_OPTIONS.length)&&(
+              <div style={{padding:"7px 10px",background:"#F0EAFB",border:"1px solid #C9A8F5",borderRadius:6,marginBottom:8,fontSize:11,color:"#5A1FA0"}}>
+                🔐 <strong>Service Registry active:</strong>{" "}
+                {ALL_OPTIONS.length-master.enabled.length>0&&`${ALL_OPTIONS.length-master.enabled.length} hidden (disabled globally)`}
+                {ALL_OPTIONS.length-master.enabled.length>0&&master.addOnOnly.length>0&&" · "}
+                {master.addOnOnly.length>0&&`${master.addOnOnly.length} are Add-on Only (🔒)`}
+              </div>
+            )}
+            <p style={{fontSize:11,color:C.mutedText,marginBottom:10}}>Click to enable or disable. Options marked 🔒 automatically become add-ons (amber) when enabled.</p>
+            <OptionList standardOptions={stdOpts} chargeableOptions={chgOpts} onChangeBoth={(std,chg)=>{setStd(std);setChg(chg);}}/>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function ServicesPage() {
+  const { products, services, addService, updateService, deleteService } = useCatalog();
+  const [open,setOpen]=useState(false);const [editing,setEditing]=useState(null);
+  const [name,setName]=useState("");const [code,setCode]=useState("");const [svcType,setSvcType]=useState("paid");const [enabled,setEnabled]=useState([]);
+  const openNew=()=>{setEditing(null);setName("");setCode("");setSvcType("paid");setEnabled([]);setOpen(true);};
+  const openEdit=s=>{setEditing(s);setName(s.name);setCode(s.code);setSvcType(s.type||"paid");setEnabled([...s.enabledOptions]);setOpen(true);};
+  const togOpt=v=>setEnabled(prev=>prev.includes(v)?prev.filter(x=>x!==v):[...prev,v]);
+  const save=()=>{if(!name.trim()||!code.trim())return;editing?updateService({...editing,name:name.trim(),code:code.trim(),type:svcType,enabledOptions:enabled}):addService({name:name.trim(),code:code.trim(),type:svcType,enabledOptions:enabled});setOpen(false);};
+  return (
+    <div className="fade-in">
+      <PageHeader title="Services" description="Services are product-agnostic. Configure which options each service enables — the customer's product determines what actually gets unlocked." action={<Btn onClick={openNew}>＋ Add Service</Btn>}/>
+      <div style={{padding:"10px 14px",background:C.primaryLight,border:"1px solid #BBCFE8",borderRadius:8,marginBottom:18,fontSize:12,color:C.primary,display:"flex",gap:8}}>
+        <span>ℹ️</span><span>Services are <strong>global</strong> — not tied to any product. When a customer subscribes, only options marked <strong>Add-on required 🔒</strong> on their product will be unlocked.</span>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        {services.map(s=>(
+          <div key={s.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden"}}>
+            <div style={{padding:"13px 18px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:36,height:36,borderRadius:8,background:C.accentLight,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,color:C.accent}}>{s.name}</div>
+                <div>
+                  <span style={{fontWeight:700,fontSize:14}}>{s.name}</span>
+                  <span style={{fontFamily:"'DM Mono',monospace",fontSize:12,color:C.mutedText,marginLeft:8}}>{s.code}</span>
+                  <span style={{marginLeft:8}}><SvcTypeBadge type={s.type}/></span>
+                  <div style={{fontSize:11,color:C.mutedText,marginTop:1}}>{s.enabledOptions.length} option{s.enabledOptions.length!==1?"s":""} enabled globally</div>
+                </div>
+              </div>
+              <div style={{display:"flex",gap:4}}><Btn variant="ghost" size="sm" onClick={()=>openEdit(s)}>✏️ Edit</Btn><Btn variant="danger" size="sm" onClick={()=>deleteService(s.id)}>🗑</Btn></div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 320px",borderTop:`1px solid ${C.border}`}}>
+              <div style={{padding:"14px 18px",borderRight:`1px solid ${C.border}`}}>
+                <GlobalOptionChecklist enabledOptions={s.enabledOptions} onToggle={v=>{const next=s.enabledOptions.includes(v)?s.enabledOptions.filter(x=>x!==v):[...s.enabledOptions,v];updateService({...s,enabledOptions:next});}}/>
+              </div>
+              <CoverageSummaryPanel enabledOptions={s.enabledOptions} products={products}/>
+            </div>
+          </div>
+        ))}
+      </div>
+      <Modal open={open} onClose={()=>setOpen(false)} title={editing?"Edit Service":"New Service"}
+        footer={<><Btn variant="outline" onClick={()=>setOpen(false)}>Cancel</Btn><Btn onClick={save}>{editing?"Update":"Create"}</Btn></>}>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+            <div><label className="form-label">Service Name</label><Inp value={name} onChange={setName} placeholder="e.g. S4"/></div>
+            <div><label className="form-label">Partner Code</label><Inp value={code} onChange={setCode} placeholder="e.g. C0" mono/></div>
+            <div><label className="form-label">Service Type</label><SelEl value={svcType} onChange={setSvcType} options={[{value:"paid",label:"💳 Paid"},{value:"bundled",label:"✓ Bundled"},{value:"partner",label:"🤝 Partner"}]}/></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 240px",gap:16,alignItems:"start"}}>
+            <div>
+              <label style={{fontSize:13,fontWeight:700,display:"block",marginBottom:4}}>Enabled Options</label>
+              <p style={{fontSize:11,color:C.mutedText,marginBottom:10}}>Tick all payments and features this service enables. The customer's product determines which are unlocked.</p>
+              <GlobalOptionChecklist enabledOptions={enabled} onToggle={togOpt}/>
+            </div>
+            <CoverageSummaryPanel enabledOptions={enabled} products={products}/>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+const CustomerCapabilities = ({ product, custSvcs, master }) => {
+  const svcEnabled = new Set(custSvcs.flatMap(s => s.enabledOptions));
+  const std = product?.standardOptions || [];
+  const chg = product?.chargeableOptions || [];
+  const allOpts = [...std, ...chg.filter(id => !std.includes(id))];
+
+  const renderRow = (id, type) => {
+    const isStd = std.includes(id);
+    const isChg = chg.includes(id) && !isStd;
+    const isNonProd = type === "channel" || type === "advisory" || type === "external";
+    const isActive = isStd || (isChg && svcEnabled.has(id)) || (isNonProd && svcEnabled.has(id));
+    const via = custSvcs.filter(s => s.enabledOptions.includes(id)).map(s => s.name).join(", ");
+    return (
+      <div key={id} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 8px",borderRadius:6,
+        border:`1px solid ${isActive ? isStd ? C.successBorder : C.warningBorder : C.border}`,
+        background:isActive ? isStd ? C.successLight+"55" : C.warningLight+"55" : "#F9FAFB"}}>
+        <span style={{fontSize:11}}>{isActive ? "✅" : "❌"}</span>
+        <span style={{fontSize:11,fontWeight:500,color:isActive?C.text:C.mutedText,flex:1,lineHeight:1.3,textDecoration:isActive?"none":"line-through"}}>{id}</span>
+        {isStd && <Pill label="Std" bg={C.successLight} color={C.success} border={C.successBorder}/>}
+        {(isChg||isNonProd) && isActive && <Pill label={`via ${via}`} bg={C.primaryLight} color={C.primary} border="#BBCFE8"/>}
+        {(isChg||isNonProd) && !isActive && <Pill label="Add-on" bg={C.warningLight} color={C.warning} border={C.warningBorder}/>}
+      </div>
+    );
+  };
+
+  const payments = allOpts.filter(id => optById(id)?.type === "payment");
+  const features = allOpts.filter(id => optById(id)?.type === "feature");
+  const nonProdGroups = [
+    {key:"channel", label:"📡 Channels",  items: ALL_CHANNELS},
+    {key:"advisory",label:"🤝 Advisory",  items: ALL_ADVISORY},
+    {key:"external", label:"🔗 External", items: ALL_EXTERNAL},
+  ].map(g => ({...g, opts: g.items.filter(o => master.addOnOnly.includes(o.id))}))
+   .filter(g => g.opts.length > 0);
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>💳 Payment Types</div>
+          {payments.length === 0
+            ? <span style={{fontSize:11,color:C.mutedText}}>None</span>
+            : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{payments.map(id => renderRow(id,"payment"))}</div>}
+        </div>
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>✨ Product Features</div>
+          {features.length === 0
+            ? <span style={{fontSize:11,color:C.mutedText}}>None</span>
+            : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>{features.map(id => renderRow(id,"feature"))}</div>}
+        </div>
+      </div>
+      {nonProdGroups.length > 0 && (
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Non-Product Add-on Capabilities</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+            {nonProdGroups.map(g => (
+              <div key={g.key}>
+                <div style={{fontSize:10,fontWeight:700,color:C.warning,marginBottom:4}}>{g.label}</div>
+                {g.opts.map(o => renderRow(o.id, g.key))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+function CustomersPage() {
+  const { customers, products, services, master, addCustomer, updateCustomer, deleteCustomer } = useCatalog();
+  const [open,setOpen]=useState(false);const [editing,setEditing]=useState(null);
+  const [name,setName]=useState("");const [pid,setPid]=useState("");const [sids,setSids]=useState([]);
+  const openNew=()=>{setEditing(null);setName("");setPid(products[0]?.id||"");setSids([]);setOpen(true);};
+  const openEdit=c=>{setEditing(c);setName(c.name);setPid(c.productId);setSids([...c.serviceIds]);setOpen(true);};
+  const togSvc=id=>setSids(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]);
+  const save=()=>{if(!name.trim()||!pid)return;editing?updateCustomer({...editing,name:name.trim(),productId:pid,serviceIds:sids}):addCustomer({name:name.trim(),productId:pid,serviceIds:sids});setOpen(false);};
+  return (
+    <div className="fade-in">
+      <PageHeader title="Customers" description="A customer's product defines Standard & Add-on options. Subscribed services unlock add-ons." action={<Btn onClick={openNew}>＋ Add Customer</Btn>}/>
+      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+        {customers.map(cust => {
+          const product = products.find(p => p.id === cust.productId);
+          const custSvcs = services.filter(s => cust.serviceIds.includes(s.id));
+          return (
+            <div key={cust.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,padding:18}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
+                <div><div style={{fontWeight:700,fontSize:15}}>{cust.name}</div><div style={{fontSize:12,color:C.mutedText}}>{product?.name||"Unknown Product"}</div></div>
+                <div style={{display:"flex",gap:4}}><Btn variant="ghost" size="sm" onClick={()=>openEdit(cust)}>✏️</Btn><Btn variant="danger" size="sm" onClick={()=>deleteCustomer(cust.id)}>🗑</Btn></div>
+              </div>
+              <div style={{marginBottom:14}}>
+                <div className="section-label">Subscribed Services</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                  {custSvcs.length===0
+                    ? <span style={{fontSize:12,color:C.mutedText}}>None — Standard options only</span>
+                    : custSvcs.map(s=><span key={s.id} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:6,background:C.accentLight,border:"1px solid #F5C99A",fontSize:12,fontWeight:600}}>{s.name}<span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:C.mutedText,fontWeight:400}}>({s.code})</span><SvcTypeBadge type={s.type}/></span>)}
+                </div>
+              </div>
+              <div className="section-label" style={{marginBottom:8}}>Resolved Capabilities</div>
+              <CustomerCapabilities product={product} custSvcs={custSvcs} master={master}/>
+            </div>
+          );
+        })}
+      </div>
+      <Modal open={open} onClose={()=>setOpen(false)} title={editing?"Edit Customer":"New Customer"}
+        footer={<><Btn variant="outline" onClick={()=>setOpen(false)}>Cancel</Btn><Btn onClick={save}>{editing?"Update":"Create"}</Btn></>}>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div><label className="form-label">Customer Name</label><Inp value={name} onChange={setName} placeholder="e.g. Customer 3"/></div>
+          <div><label className="form-label">Account Product</label><SelEl value={pid} onChange={v=>{setPid(v);setSids([]);}} options={products.map(p=>({value:p.id,label:p.name}))}/></div>
+          <div>
+            <label className="form-label" style={{marginBottom:4}}>Subscribe to Services</label>
+            <p style={{fontSize:11,color:C.mutedText,marginBottom:10}}>Only options marked Add-on required 🔒 on the customer's product will be unlocked.</p>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {services.map(s=>{
+                const product=products.find(p=>p.id===pid);
+                const applicable=product?s.enabledOptions.filter(id=>product.chargeableOptions.includes(id)).length:0;
+                const chk=sids.includes(s.id);
+                return(
+                  <button key={s.id} role="checkbox" aria-checked={chk} onClick={()=>togSvc(s.id)}
+                    style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:7,textAlign:"left",fontFamily:"'DM Sans',sans-serif",outline:"none",cursor:"pointer",transition:"background .12s",background:chk?C.primaryLight+"88":"#F8FAFB",border:`1px solid ${chk?"#BBCFE8":C.border}`}}>
+                    <div style={{width:18,height:18,borderRadius:4,flexShrink:0,border:`2px solid ${chk?C.primary:"#B8C5D4"}`,background:chk?C.primary:"#fff",display:"flex",alignItems:"center",justifyContent:"center",pointerEvents:"none",transition:"all .12s"}}>
+                      {chk&&<svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    </div>
+                    <span style={{fontWeight:600,fontSize:13}}>{s.name}</span>
+                    <span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:C.mutedText}}>({s.code})</span>
+                    <SvcTypeBadge type={s.type}/>
+                    <span style={{marginLeft:"auto",fontSize:11,color:applicable>0?C.success:C.mutedText,fontWeight:applicable>0?600:400}}>
+                      {applicable>0?`unlocks ${applicable} option${applicable!==1?"s":""}` :"no overlap"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function ReadMePage() {
+  const { products, services, customers, master } = useCatalog();
+  const Section = ({ icon, title, children }) => (
+    <div style={{marginBottom:28}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingBottom:10,borderBottom:`2px solid ${C.border}`}}>
+        <span style={{fontSize:18}}>{icon}</span><h3 style={{fontSize:15,fontWeight:700,margin:0}}>{title}</h3>
+      </div>
+      <div style={{fontSize:13,color:C.textSub,lineHeight:1.75}}>{children}</div>
+    </div>
+  );
+  const stats=[
+    {label:"Products",value:products.length},
+    {label:"Services",value:services.length},
+    {label:"Options",value:ALL_OPTIONS.length},
+    {label:"Customers",value:customers.length,highlight:true}
+  ];
+  const addOnCount=master.addOnOnly.length;
+  const standardCount=ALL_OPTIONS.length-addOnCount;
+  return (
+    <div style={{maxWidth:860,margin:"0 auto"}} className="fade-in">
+      {/* Hero */}
+      <div style={{borderRadius:12,padding:"32px 36px",marginBottom:28,background:"linear-gradient(168deg,hsl(236,42%,7%) 0%,hsl(244,44%,9%) 40%,hsl(252,46%,14%) 100%)",boxShadow:"0 6px 28px rgba(0,0,0,0.16)",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 80% 60% at 60% 20%,hsla(248,80%,60%,0.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
+        <div style={{fontSize:"0.625rem",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(200,205,255,0.42)",marginBottom:"0.75rem"}}>POC 3 · BACK OFFICE CONFIGURATION TOOL</div>
+        <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"2rem",fontWeight:700,color:"#fff",letterSpacing:"-0.02em",lineHeight:1.2,margin:"0 0 0.875rem 0"}}>DBS Digital Banking<br/>Product & Service Catalogue</h1>
+        <p style={{fontSize:"0.9rem",color:"rgba(200,205,255,0.52)",lineHeight:1.7,maxWidth:620,margin:"0 0 1.5rem 0"}}>A role-separated back-office tool governing which payment types, features, channels, advisory, and external capabilities are available to each customer — through a four-layer model of Service Registry → Products → Services → Customer Subscriptions.</p>
+        <div style={{display:"flex",alignItems:"center",gap:"1.25rem",flexWrap:"wrap"}}>
+          {stats.map(({label,value,highlight})=>highlight?(
+            <div key={label} style={{padding:"0.3rem 0.875rem",borderRadius:8,background:"hsla(248,55%,30%,0.55)",border:"1px solid hsla(248,65%,62%,0.30)"}}><span style={{fontSize:"0.875rem",fontWeight:700,color:"#fff"}}>{value} {label}</span></div>
+          ):(
+            <span key={label} style={{fontSize:"0.875rem",fontWeight:700,color:"rgba(255,255,255,0.85)"}}>{value} {label}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Purpose */}
+      <Section icon="🎯" title="Purpose & Problem Statement">
+        <p style={{marginBottom:10}}>Digital banking products offer different capabilities — some <strong>Standard</strong> (included by default) and others <strong>Add-on</strong> (unlocked via a subscribed service). Beyond product-linked capabilities, customers can also access <strong>non-product capabilities</strong> such as Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) — all governed at the Service Registry level.</p>
+        <p>This POC introduces a <strong>four-layer configuration model</strong> with role-based access, making explicit what is constrained at the top, what is configurable per product, what services unlock, and how a customer's full capability set is resolved end-to-end.</p>
+      </Section>
+
+      {/* Option Types */}
+      <Section icon="🗂️" title="Option Categories">
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:8}}>
+          {[
+            {icon:"💳",label:"Payment Types",count:ALL_PAYMENTS.length,desc:"Transaction rails — transfers, SEPA, P2P. Tied to products; some standard, others add-on."},
+            {icon:"✨",label:"Product Features",count:ALL_FEATURES.length,desc:"Account features — statements, chequebooks, savings goals. Configured per product."},
+            {icon:"📡",label:"Channels",count:ALL_CHANNELS.length,desc:"Access channels (Web, Mobile). Governed in Master; non-product add-ons unlocked via services."},
+            {icon:"🤝",label:"Advisory",count:ALL_ADVISORY.length,desc:"Relationship Manager, 24/7 Support. Assigned at service level, not tied to a product."},
+            {icon:"🔗",label:"External",count:ALL_EXTERNAL.length,desc:"Quick Links, Menu Links. External integrations enabled through service subscriptions."},
+          ].map(({icon,label,count,desc})=>(
+            <div key={label} style={{background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,padding:"12px 14px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
+                <span style={{fontSize:15}}>{icon}</span>
+                <span style={{fontWeight:700,fontSize:13}}>{label}</span>
+                <span style={{marginLeft:"auto",fontSize:11,fontWeight:700,color:C.primary,background:C.primaryLight,padding:"1px 6px",borderRadius:4}}>{count}</span>
+              </div>
+              <p style={{fontSize:11,color:C.mutedText,lineHeight:1.55,margin:0}}>{desc}</p>
+            </div>
+          ))}
+          <div style={{background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,padding:"12px 14px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+            <div style={{fontSize:11,color:C.mutedText,marginBottom:6}}>Current master state</div>
+            <div style={{display:"flex",gap:8}}>
+              <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:4,background:"#E8F5E9",color:"#1B5E20",border:"1px solid #A5D6A7"}}>✓ {standardCount} Standard</span>
+              <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:4,background:C.warningLight,color:C.warning,border:`1px solid ${C.warningBorder}`}}>🔒 {addOnCount} Add-on</span>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Four-layer model */}
+      <Section icon="🏗️" title="Four-Layer Configuration Model">
+        {[
+          {num:1,layer:"Service Registry",who:"Administrator",color:"hsl(248,55%,30%)",desc:"Defines the global universe of all option types — Payments, Features, Channels, Advisory, and External. Admin toggles each option between Standard (available to products) or Add-on Only (🔒 — can never be Standard on any product, only unlocked via services)."},
+          {num:2,layer:"Product Configuration",who:"Product Manager",color:"hsl(248,55%,38%)",desc:"Within master-enabled options, the Product Manager configures Payments and Features per product — marking each as Standard (included) or Add-on (chargeable). Channels, Advisory, and External are non-product capabilities and are not configured here."},
+          {num:3,layer:"Service Configuration",who:"Service Manager",color:"hsl(220,55%,42%)",desc:"Services are product-agnostic bundles that enable Add-on options. Only options marked Add-on in the Service Registry appear here. Services can include Payments, Features, and non-product capabilities (Channels, Advisory, External). A live coverage panel shows which products benefit."},
+          {num:4,layer:"Customer Assignment",who:"Customer Operations",color:C.success,desc:"A customer is assigned one product and can subscribe to multiple services. Standard options are always active. Add-on options (Payments/Features) activate only if a subscribed service covers them. Non-product capabilities (Channels, Advisory, External) activate via service subscription regardless of product."},
+        ].map(({num,layer,who,color,desc})=>(
+          <div key={num} style={{display:"flex",gap:14,marginBottom:16,paddingBottom:16,borderBottom:num<4?`1px solid ${C.border}`:"none"}}>
+            <div style={{width:32,height:32,borderRadius:8,background:color,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:"#fff"}}>{num}</div>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
+                <span style={{fontWeight:700,fontSize:13}}>{layer}</span>
+                <span style={{fontSize:10,fontWeight:700,color:"#fff",background:color,padding:"1px 8px",borderRadius:4}}>{who}</span>
+              </div>
+              <p style={{fontSize:12,color:C.mutedText,lineHeight:1.65,margin:0}}>{desc}</p>
+            </div>
+          </div>
+        ))}
+      </Section>
+
+      {/* Key Concepts */}
+      <Section icon="💡" title="Key Concepts">
+        <div className="grid-2" style={{gap:10}}>
+          {[
+            {icon:"🔒",title:"Standard vs Add-on toggle",text:"In the Service Registry, every option is toggled between Standard or Add-on Only using a segmented control. Add-on Only options can never appear as Standard on any product — they can only be unlocked via a service."},
+            {icon:"📦",title:"Product-scoped capabilities",text:"Payments and Features are product-scoped — each product independently defines which are Standard and which are Add-on. Channels, Advisory, and External are not product-scoped."},
+            {icon:"🔧",title:"Service add-on unlocking",text:"Services show only Add-on options (amber theme). Subscribing a service unlocks those options for a customer — but only if the option is also chargeable on the customer's product (for Payments/Features) or non-product (for Channels/Advisory/External)."},
+            {icon:"📡",title:"Non-product capabilities",text:"Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) are governed globally in Service Registry and unlocked per-customer via service subscriptions — independent of their product."},
+            {icon:"👥",title:"Role-based access",text:"Four personas: Admin (full access), Product Manager (products only), Service Manager (services + coverage), Customer Ops (customer assignment). Each sees only their relevant sections."},
+            {icon:"🔁",title:"Resolved capabilities",text:"A customer's full capability set is resolved dynamically — Standard options always on; product Add-ons activate via subscribed services; non-product capabilities (Channel/Advisory/External) activate if any subscribed service includes them."},
+          ].map(({icon,title,text})=>(
+            <div key={title} style={{background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,padding:"12px 14px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}><span style={{fontSize:15}}>{icon}</span><span style={{fontWeight:700,fontSize:13}}>{title}</span></div>
+              <p style={{fontSize:12,color:C.mutedText,lineHeight:1.65,margin:0}}>{text}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Scope */}
+      <Section icon="📋" title="POC Scope">
+        <div className="grid-2">
+          <div>
+            <div style={{fontSize:11,fontWeight:700,color:C.success,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>✅ In Scope</div>
+            {[
+              "Service Registry governance — Standard vs Add-on toggle per option",
+              "Five option categories: Payments, Features, Channels, Advisory, External",
+              "Product configuration — Payments & Features only (Standard or Add-on)",
+              "Service configuration — Add-on options only, amber theme",
+              "Non-product capabilities (Channels, Advisory, External) via services",
+              "Live product coverage impact panel in Services (no 'Already Standard')",
+              "Customer resolved capabilities — product + service add-ons + non-product",
+              "Overview with full capability resolution per customer",
+              "Role-based access: four personas with scoped navigation",
+              "Full CRUD for products, services, and customers",
+            ].map(t=>(
+              <div key={t} style={{display:"flex",gap:8,fontSize:12,color:C.textSub,marginBottom:6,lineHeight:1.5}}><span style={{color:C.success,flexShrink:0}}>✓</span>{t}</div>
+            ))}
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>⬜ Out of Scope</div>
+            {[
+              "Pricing rules and fee structures",
+              "Approval workflows for catalogue changes",
+              "Audit trail and change history",
+              "Multi-currency or region-specific variants",
+              "API integration with core banking",
+              "Customer self-service portal",
+              "Bulk import / export configuration",
+              "Automated conflict resolution",
+            ].map(t=>(
+              <div key={t} style={{display:"flex",gap:8,fontSize:12,color:C.mutedText,marginBottom:6,lineHeight:1.5}}><span style={{flexShrink:0}}>○</span>{t}</div>
+            ))}
+          </div>
+        </div>
+      </Section>
+      <div style={{textAlign:"center",padding:"16px 0 4px",borderTop:`1px solid ${C.border}`,color:C.mutedText,fontSize:11}}>DBS Platform · Product & Service Catalogue · POC 3 · Demo Environment</div>
+    </div>
+  );
+}
+
+function MatrixPage() {
+  const { products, services, master } = useCatalog();
+  const [activeCell, setActiveCell] = useState(null);
+  const [filterGroup, setFilterGroup] = useState("all");
+  const [filterSvc, setFilterSvc] = useState("all");
+
+  const allCaps = PRODUCT_OPTION_GROUPS.flatMap(g => g.items).filter(o => master.enabled.includes(o.id));
+  const svcFiltered = filterSvc === "all" ? allCaps : allCaps.filter(o => {
+    const svc = services.find(s => s.id === filterSvc);
+    return svc ? svc.enabledOptions.includes(o.id) : true;
+  });
+  const filtered = filterGroup === "all" ? svcFiltered : svcFiltered.filter(o => o.type === filterGroup);
+
+  const renderCell = (prod, opt) => {
+    const isStd = prod.standardOptions.includes(opt.id);
+    const isChg = prod.chargeableOptions.includes(opt.id);
+    const cellKey = `${prod.id}-${opt.id}`;
+    const isOpen = activeCell === cellKey;
+    const supportingServices = services.filter(s => s.enabledOptions.includes(opt.id));
+
+    if (!isStd && !isChg) return (
+      <td key={opt.id} style={{padding:"6px 8px",textAlign:"center",borderBottom:`1px solid ${C.border}`,borderRight:`1px solid ${C.border}`,background:"#FAFBFC"}}>
+        <span style={{fontSize:11,color:"#CBD5E1"}}>—</span>
+      </td>
+    );
+
+    const bg  = isStd ? "#E8F5E9" : "#FFF8E1";
+    const clr = isStd ? "#1B5E20" : "#E65100";
+    const bdr = isStd ? "#A5D6A7" : "#FFCC80";
+    const lbl = isStd ? "STD" : "ADD-ON";
+
+    return (
+      <td key={opt.id} style={{padding:"5px 6px",borderBottom:`1px solid ${C.border}`,borderRight:`1px solid ${C.border}`,verticalAlign:"top",position:"relative"}}>
+        <button onClick={()=>setActiveCell(isOpen ? null : cellKey)}
+          style={{width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"6px 4px",borderRadius:6,cursor:"pointer",
+            border:`1.5px solid ${isOpen?clr:bdr}`,background:isOpen?bg+"EE":bg,
+            transition:"all .12s",outline:"none",boxShadow:isOpen?`0 0 0 2px ${bdr}`:"none"}}>
+          <span style={{fontSize:9,fontWeight:800,letterSpacing:"0.06em",color:clr,lineHeight:1}}>{lbl}</span>
+          {supportingServices.length>0&&<span style={{fontSize:9,color:C.primary,fontWeight:600}}>{supportingServices.length} svc{supportingServices.length!==1?"s":""}</span>}
+        </button>
+        {isOpen&&(
+          <div onClick={e=>e.stopPropagation()} style={{position:"absolute",zIndex:50,top:"calc(100% + 4px)",left:0,minWidth:210,maxWidth:270,background:"#fff",borderRadius:8,border:`1.5px solid ${bdr}`,boxShadow:"0 8px 24px rgba(0,0,0,0.13)",padding:12}}>
+            <div style={{fontWeight:700,fontSize:12,marginBottom:6,color:C.text}}>{opt.id}</div>
+            <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+              <span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:4,background:bg,color:clr,border:`1px solid ${bdr}`}}>{isStd?"✓ Standard":"🔒 Add-on"}</span>
+              <span style={{fontSize:10,color:C.mutedText,alignSelf:"center"}}>{prod.name}</span>
+            </div>
+            {supportingServices.length>0?(
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:5}}>Services that enable this</div>
+                {supportingServices.map(s=>(
+                  <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",borderRadius:5,background:C.muted,marginBottom:3,flexWrap:"wrap"}}>
+                    <span style={{fontWeight:700,fontSize:11,color:C.text}}>{s.name}</span>
+                    <span style={{fontFamily:"'DM Mono',monospace",fontSize:10,color:C.mutedText}}>({s.code})</span>
+                    <SvcTypeBadge type={s.type}/>
+                  </div>
+                ))}
+              </div>
+            ):(
+              <div style={{fontSize:11,color:C.mutedText,fontStyle:"italic"}}>No services include this option.</div>
+            )}
+            <button onClick={()=>setActiveCell(null)} style={{marginTop:8,width:"100%",padding:"4px",fontSize:10,color:C.mutedText,background:"transparent",border:`1px solid ${C.border}`,borderRadius:5,cursor:"pointer"}}>Close</button>
+          </div>
+        )}
+      </td>
+    );
+  };
+
+  return (
+    <div className="fade-in" onClick={()=>setActiveCell(null)}>
+      <PageHeader title="360° Capability Matrix" description="Products as rows · Capabilities as columns · Click any cell to see supporting services."/>
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+        {/* Capability type filter */}
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+          <span style={{fontSize:12,color:C.mutedText,fontWeight:600,minWidth:90}}>Capability:</span>
+          {[{key:"all",label:"All"},{key:"payment",label:"💳 Payments"},{key:"feature",label:"✨ Features"}].map(f=>(
+            <button key={f.key} onClick={e=>{e.stopPropagation();setFilterGroup(f.key);setActiveCell(null);}}
+              style={{padding:"4px 12px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",
+                border:`1px solid ${filterGroup===f.key?C.primary:C.border}`,
+                background:filterGroup===f.key?C.primaryLight:"#fff",
+                color:filterGroup===f.key?C.primary:C.mutedText,transition:"all .12s"}}>
+              {f.label}
+            </button>
+          ))}
+          <div style={{marginLeft:"auto",display:"flex",gap:8,fontSize:11,color:C.mutedText,alignItems:"center",flexWrap:"wrap"}}>
+            <span style={{padding:"2px 8px",borderRadius:4,background:"#E8F5E9",color:"#1B5E20",border:"1px solid #A5D6A7",fontWeight:700}}>STD</span> Standard &nbsp;
+            <span style={{padding:"2px 8px",borderRadius:4,background:"#FFF8E1",color:"#E65100",border:"1px solid #FFCC80",fontWeight:700}}>ADD-ON</span> Add-on &nbsp;
+            <span style={{color:"#CBD5E1",fontWeight:700,fontSize:14}}>—</span> Not offered
+          </div>
+        </div>
+        {/* Service filter */}
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+          <span style={{fontSize:12,color:C.mutedText,fontWeight:600,minWidth:90}}>Service:</span>
+          {[{id:"all",name:"All Services",code:null},...services].map(s=>{
+            const active = filterSvc === s.id;
+            return(
+              <button key={s.id} onClick={e=>{e.stopPropagation();setFilterSvc(s.id);setActiveCell(null);}}
+                style={{padding:"4px 12px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:5,
+                  border:`1px solid ${active?C.warning:C.border}`,
+                  background:active?C.warningLight:"#fff",
+                  color:active?C.warning:C.mutedText,transition:"all .12s"}}>
+                {s.name}
+                {s.code&&<span style={{fontFamily:"'DM Mono',monospace",fontSize:10,opacity:0.7}}>({s.code})</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{overflowX:"auto",borderRadius:10,border:`1px solid ${C.border}`,background:"#fff"}} onClick={e=>e.stopPropagation()}>
+        <table style={{borderCollapse:"collapse",width:"100%",minWidth:500}}>
+          <thead>
+            <tr style={{background:"hsl(220,14%,97%)"}}>
+              <th style={{padding:"10px 14px",textAlign:"left",fontSize:11,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.05em",
+                borderBottom:`1px solid ${C.border}`,borderRight:`1px solid ${C.border}`,minWidth:130,
+                position:"sticky",left:0,background:"hsl(220,14%,97%)",zIndex:10}}>Product</th>
+              {filtered.map(opt=>(
+                <th key={opt.id} style={{padding:"8px 6px",fontSize:10,fontWeight:700,color:C.text,
+                  borderBottom:`1px solid ${C.border}`,borderRight:`1px solid ${C.border}`,
+                  minWidth:88,maxWidth:110,textAlign:"center",lineHeight:1.3,verticalAlign:"bottom"}}>
+                  <div style={{fontSize:9,color:C.mutedText,fontWeight:600,marginBottom:2}}>{opt.type==="payment"?"💳":"✨"}</div>
+                  <div style={{wordBreak:"break-word",fontSize:10}}>{opt.id}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((prod,pi)=>(
+              <tr key={prod.id} style={{background:pi%2===0?"#fff":"hsl(220,14%,99%)"}}>
+                <td style={{padding:"10px 14px",fontSize:12,fontWeight:700,color:C.text,
+                  borderBottom:`1px solid ${C.border}`,borderRight:`1px solid ${C.border}`,
+                  position:"sticky",left:0,background:pi%2===0?"#fff":"hsl(220,14%,99%)",zIndex:5,whiteSpace:"nowrap"}}>
+                  {prod.name}
+                </td>
+                {filtered.map(opt => renderCell(prod, opt))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{marginTop:10,fontSize:11,color:C.mutedText,textAlign:"center"}}>Click any cell to expand · Click outside to close</div>
+    </div>
+  );
+}
+
+
+const PERSONAS = {
+  admin:{id:"admin",name:"Admin",role:"Administrator",avatar:"AD",description:"Full access to all catalogue configuration — including Service Registry, products, services, customers, and system overview.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"master",icon:"🔐",label:"Service Registry"},{id:"products",icon:"📦",label:"Products"},{id:"services",icon:"🔧",label:"Services"},{id:"customers",icon:"👥",label:"Customers"},{id:"matrix",icon:"🔢",label:"360° Matrix"}],defaultPage:"readme"},
+  product_manager:{id:"product_manager",name:"Alex Morgan",role:"Product Manager",avatar:"AM",description:"Configures products — defines which payment types and features are Standard or Add-on required.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"products",icon:"📦",label:"Products"}],defaultPage:"readme"},
+  service_manager:{id:"service_manager",name:"Jordan Lee",role:"Service Manager",avatar:"JL",description:"Configures global services, defines which options each service enables, monitors product coverage impact.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"services",icon:"🔧",label:"Services"}],defaultPage:"readme"},
+  customer_ops:{id:"customer_ops",name:"Sam Clarke",role:"Customer Operations",avatar:"SC",description:"Manages customer accounts — assigns products, subscribes and unsubscribes services, reviews resolved capabilities.",nav:[{id:"readme",icon:"📖",label:"Read Me"},{id:"overview",icon:"📊",label:"Overview"},{id:"customers",icon:"👥",label:"Customers"}],defaultPage:"readme"},
+};
+
+function LoginScreen({ onLogin }) {
+  return (
+    <div className="persona-screen">
+      <div className="persona-logo">
+        <div className="persona-logo-title">DBS Platform</div>
+        <div className="persona-logo-sub">Product & Service Catalogue — Back Office</div>
+        <div className="persona-logo-line"/>
+        <div className="persona-poc-badge">Chargeable Service · POC 3 (Master Config)</div>
+      </div>
+      <div className="persona-role-lbl">Select your role to continue</div>
+      <div className="persona-cards">
+        {Object.values(PERSONAS).map(p=>(
+          <div key={p.id} className="persona-card" onClick={()=>onLogin(p.id)}>
+            <div className="persona-card-top">
+              <div className="persona-avatar-lg">{p.avatar}</div>
+              <div><div className="persona-name">{p.name}</div><span className="persona-role-badge">{p.role}</span></div>
+            </div>
+            <div className="persona-desc">{p.description}</div>
+            <div className="persona-pages">{p.nav.map(n=><span key={n.id} className="persona-page-chip">{n.icon} {n.label}</span>)}</div>
+            <button className="persona-signin">Sign in as {p.role} →</button>
+          </div>
+        ))}
+      </div>
+      <div className="persona-footer">POC 3 · Demo Environment · v1.1</div>
+    </div>
+  );
+}
+
+function App() {
+  const [personaId,setPersonaId]=useState(null);
+  const [page,setPage]=useState(null);
+  const login=id=>{setPersonaId(id);setPage(PERSONAS[id].defaultPage);};
+  const logout=()=>{setPersonaId(null);setPage(null);};
+  if(!personaId) return <CatalogProvider><LoginScreen onLogin={login}/></CatalogProvider>;
+  const persona=PERSONAS[personaId];
+  return (
+    <CatalogProvider>
+      <div style={{display:"flex",minHeight:"100vh",fontSize:14,fontFamily:"'DM Sans',sans-serif"}}>
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <div className="sidebar-brand">DBS Platform</div>
+            <div className="sidebar-sub">Product & Service Catalog</div>
+          </div>
+          <div className="sidebar-user">
+            <div className="sidebar-avatar">{persona.avatar}</div>
+            <div><div className="sidebar-user-name">{persona.name}</div><div className="sidebar-user-role">{persona.role}</div></div>
+          </div>
+          <nav className="sidebar-nav">
+            {persona.nav.map(n=>(
+              <button key={n.id} className={`nav-item${page===n.id?" active":""}`} onClick={()=>setPage(n.id)}>
+                <span className="nav-icon">{n.icon}</span>{n.label}
+              </button>
+            ))}
+          </nav>
+          <div className="sidebar-footer">
+            <button className="nav-item" onClick={logout} style={{color:"rgba(190,198,255,0.35)",fontSize:"0.75rem"}}>
+              <span className="nav-icon">⏏</span> Sign out
+            </button>
+            <div className="sidebar-version">v1.1 · POC 3 · Back Office</div>
+          </div>
+        </aside>
+        <main className="main">
+          {page==="readme"    && <ReadMePage/>}
+          {page==="overview"  && <OverviewPage/>}
+          {page==="master"    && <MasterCataloguePage/>}
+          {page==="products"  && <ProductsPage/>}
+          {page==="services"  && <ServicesPage/>}
+          {page==="customers" && <CustomersPage/>}
+          {page==="matrix"    && <MatrixPage/>}
+        </main>
+      </div>
+    </CatalogProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
