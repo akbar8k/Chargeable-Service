@@ -493,7 +493,7 @@ function MasterCataloguePage() {
                         ))}
                       </div>
                     )}
-                    <div style={{fontSize:11,color:"#388E3C",fontStyle:"italic"}}>All {gainAlert.allCusts.length} customer{gainAlert.allCusts.length!==1?"s":""} now have access automatically.</div>
+                    <div style={{fontSize:11,color:"#388E3C",fontStyle:"italic"}}>All eligible customers now have access automatically.</div>
                   </div>
                   <button onClick={()=>setGainAlert(null)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:16,color:"#1B5E20",flexShrink:0}}>✕</button>
                 </div>
@@ -518,7 +518,6 @@ function MasterCataloguePage() {
                     </div>
                     <div style={{padding:"10px 12px",borderRadius:6,background:"#FEF3C7",border:"1px solid #FCD34D",fontSize:12,color:"#78350F",lineHeight:1.6}}>
                       <strong>Customer impact:</strong> All customers on the affected products above will lose free access to this option. Notify them to subscribe to the relevant add-on service, or proactively add a service subscription before enabling this change.
-                      {impactAlert.affectedCusts.length>0&&<div style={{marginTop:6,fontWeight:600}}>Affected customers ({impactAlert.affectedCusts.length}): {impactAlert.affectedCusts.map(c=>c.name).join(", ")}</div>}
                     </div>
                   </div>
                 </div>
