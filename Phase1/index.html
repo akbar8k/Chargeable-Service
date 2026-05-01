@@ -552,7 +552,7 @@ function OverviewPage() {
   const { products, services, customers, master } = useCatalog();
   return (
     <div className="fade-in">
-      <PageHeader title="Overview" description="DBS Digital Banking Product & Service Catalog — Back Office"/>
+      <PageHeader title={<span>Overview <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",padding:"2px 8px",borderRadius:4,background:"#FEF3C7",color:"#92400E",border:"1px solid #FCD34D",verticalAlign:"middle",marginLeft:6}}>Demo Only — Not in Phase 1 Scope</span></span>} description="DBS Digital Banking Product & Service Catalog — Back Office"/>
       <div className="grid-3" style={{marginBottom:22}}>
         <StatCard icon="📦" label="Products" value={products.length} bg={C.primaryLight}/>
         <StatCard icon="🔧" label="Services" value={services.length} bg={C.accentLight}/>
@@ -611,64 +611,56 @@ function OverviewPage() {
       </div>
       <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
         <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14}}>Customer Subscriptions & Resolved Capabilities</div>
-        <div style={{padding:14,display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <div style={{padding:14,display:"flex",flexDirection:"column",gap:14}}>
           {customers.map(cust=>{
             const custProductIds = cust.productIds || (cust.productId ? [cust.productId] : []);
             const custProducts   = custProductIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
-            const product        = custProducts[0]; // primary product for legacy logic below
-            const custSvcs=services.filter(s=>cust.serviceIds.includes(s.id));
-            const svcEnabled=new Set(custSvcs.flatMap(s=>s.enabledOptions));
-            const std=product?.standardOptions||[];const chg=product?.chargeableOptions||[];
-            const allOpts=[...std,...chg.filter(id=>!std.includes(id))];
+            const custSvcs       = services.filter(s=>cust.serviceIds.includes(s.id));
             return (
-              <div key={cust.id} style={{padding:14,borderRadius:8,border:`1px solid ${C.border}`,background:"#FAFCFF"}}>
-                <div style={{fontWeight:700,fontSize:13,marginBottom:2}}>{cust.name}</div>
-                <div style={{fontSize:11,color:C.mutedText,marginBottom:10}}>{custProducts.map(p=>p.name).join(", ")||"No products"} — {custSvcs.map(s=>s.name).join(", ")||"No services subscribed"}</div>
-                {(()=>{
-                  const renderRow=(id,type)=>{
-                    const isStd=std.includes(id);const isChg=chg.includes(id)&&!isStd;
-                    const isNonProd=type==="channel"||type==="advisory"||type==="external";
-                    const isActive=isStd||(isChg&&svcEnabled.has(id))||(isNonProd&&svcEnabled.has(id));
-                    const via=custSvcs.filter(s=>s.enabledOptions.includes(id)).map(s=>s.name).join(", ");
-                    return(
-                      <div key={id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,padding:"3px 0",borderBottom:`1px solid ${C.border}66`}}>
-                        <span style={{fontSize:12}}>{isActive?"✅":"❌"}</span>
-                        <span style={{flex:1,color:isActive?C.text:C.mutedText,textDecoration:isActive?"none":"line-through"}}>{id}</span>
-                        {isStd&&<Pill label="Std" bg={C.successLight} color={C.success} border={C.successBorder}/>}
-                        {(isChg||isNonProd)&&isActive&&<Pill label={`via ${via}`} bg={C.primaryLight} color={C.primary} border="#BBCFE8"/>}
-                        {(isChg||isNonProd)&&!isActive&&<Pill label="Add-on" bg={C.warningLight} color={C.warning} border={C.warningBorder}/>}
-                      </div>
-                    );
-                  };
-                  const payments=allOpts.filter(id=>optById(id)?.type==="payment");
-                  const features=allOpts.filter(id=>optById(id)?.type==="feature");
-                  const nonProdGroups=[
-                    {key:"channel",label:"📡 Channels",items:ALL_CHANNELS},
-                    {key:"advisory",label:"🤝 Advisory",items:ALL_ADVISORY},
-                    {key:"external",label:"🔗 External",items:ALL_EXTERNAL},
-                  ].map(g=>({...g,opts:g.items.filter(o=>master.addOnOnly.includes(o.id))})).filter(g=>g.opts.length>0);
-                  return(
-                    <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                        <div><div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>💳 Payments</div>{payments.length===0?<span style={{fontSize:11,color:C.mutedText}}>None</span>:payments.map(id=>renderRow(id,"payment"))}</div>
-                        <div><div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>✨ Features</div>{features.length===0?<span style={{fontSize:11,color:C.mutedText}}>None</span>:features.map(id=>renderRow(id,"feature"))}</div>
-                      </div>
-                      {nonProdGroups.length>0&&(
-                        <div>
-                          <div style={{fontSize:10,fontWeight:700,color:C.mutedText,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Non-Product Capabilities</div>
-                          <div style={{display:"grid",gridTemplateColumns:`repeat(${nonProdGroups.length},1fr)`,gap:10}}>
-                            {nonProdGroups.map(g=>(
-                              <div key={g.key}>
-                                <div style={{fontSize:10,fontWeight:700,color:C.warning,marginBottom:4}}>{g.label}</div>
-                                {g.opts.map(o=>renderRow(o.id,g.key))}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+              <div key={cust.id} style={{border:`1px solid ${C.border}`,borderRadius:8,overflow:"hidden",background:"#FAFCFF"}}>
+                {/* Customer header */}
+                <div style={{padding:"10px 14px",borderBottom:`1px solid ${C.border}`,
+                  background:"linear-gradient(90deg,#F8FAFF 0%,#fff 100%)",
+                  display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{width:32,height:32,borderRadius:7,background:C.primaryLight,
+                      border:`1px solid #BBCFE8`,display:"flex",alignItems:"center",justifyContent:"center",
+                      fontWeight:800,fontSize:12,color:C.primary,flexShrink:0}}>
+                      {cust.name.slice(0,2).toUpperCase()}
                     </div>
-                  );
-                })()}
+                    <div>
+                      <div style={{fontWeight:700,fontSize:13}}>{cust.name}</div>
+                      <div style={{fontSize:11,color:C.mutedText,marginTop:1}}>
+                        {custProducts.map(p=>p.name).join(" · ")||"No products"}
+                        {" — "}
+                        {custSvcs.length===0?"No services":custSvcs.map(s=>`${s.name} (${s.code})`).join(", ")}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Service badges */}
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+                    {custSvcs.map(s=>(
+                      <span key={s.id} style={{display:"inline-flex",alignItems:"center",gap:5,
+                        padding:"3px 8px",borderRadius:5,background:C.accentLight,
+                        border:"1px solid #F5C99A",fontSize:11,fontWeight:600}}>
+                        {s.name}
+                        <span style={{fontFamily:"'DM Mono',monospace",fontSize:10,color:C.mutedText,fontWeight:400}}>({s.code})</span>
+                        <SvcTypeBadge type={s.type}/>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                {/* Per-product panels + non-product */}
+                <div style={{padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
+                  <div style={{display:"grid",
+                    gridTemplateColumns:`repeat(${Math.min(custProducts.length,2)},1fr)`,
+                    gap:10}}>
+                    {custProducts.map(prod=>(
+                      <ProductCapPanel key={prod.id} product={prod} custSvcs={custSvcs} defaultOpen={false}/>
+                    ))}
+                  </div>
+                  <NonProductCapSection custSvcs={custSvcs} master={master}/>
+                </div>
               </div>
             );
           })}
@@ -951,7 +943,10 @@ function CustomersPage() {
     <div className="fade-in">
       <PageHeader title="Product & Service Entitlements"
         description="A read-only snapshot of each customer's subscribed products and services, and the capabilities unlocked by them. Designed to embed within a Customer 360 view — showing what a customer is entitled to, how each capability is activated (Standard or via a service), and which add-ons remain locked."
-        action={<Btn onClick={openNew}>＋ Add Customer</Btn>}/>
+        action={<div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+          <Btn onClick={openNew}>＋ Add Customer</Btn>
+          <span style={{fontSize:10,fontWeight:700,color:"#92400E",background:"#FEF3C7",border:"1px solid #FCD34D",borderRadius:4,padding:"1px 7px",letterSpacing:"0.04em"}}>Demo Only — Not in Phase 1 Scope</span>
+        </div>}/>
 
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
         {customers.map(cust => {
