@@ -110,6 +110,15 @@ body{background:var(--bg);color:var(--fg);min-height:100vh}
 <script type="text/babel">
 const { useState, useCallback, createContext, useContext } = React;
 
+// Simulated reference catalogue served by an external API — values shown in the
+// Service Registry "Add External Link" dialog so admins can register Quick / Menu
+// links sourced from upstream (e.g. International Payment, Premium Chequebook).
+const EXTERNAL_REF_API = [
+  "International Payment","Premium Chequebook","Travel Insurance",
+  "Investment Advisory","Crypto Wallet","Wealth Dashboard",
+  "Loyalty Rewards","Trade Finance","Forex Exchange",
+];
+
 const ALL_OPTIONS = [
   { id:"SEPA EUR TRANSFER",type:"payment" },{ id:"P2P Transfer ETB",type:"payment" },
   { id:"Local Transfer France",type:"payment" },{ id:"Local Transfer Ethiopia",type:"payment" },
@@ -122,25 +131,27 @@ const ALL_OPTIONS = [
   { id:"Download Proof Of Account",type:"feature" },
   { id:"Web",type:"channel" },{ id:"Mobile",type:"channel" },
   { id:"Relationship Manager",type:"advisory" },{ id:"24/7 Support",type:"advisory" },
-  { id:"Quick Links",type:"external" },{ id:"Menu Links",type:"external" },
+  { id:"Quick Links",type:"external",kind:"quick" },{ id:"Menu Links",type:"external",kind:"menu" },
 ];
 const optById = id => ALL_OPTIONS.find(o => o.id === id);
 const ALL_PAYMENTS  = ALL_OPTIONS.filter(o => o.type === "payment");
 const ALL_FEATURES  = ALL_OPTIONS.filter(o => o.type === "feature");
 const ALL_CHANNELS  = ALL_OPTIONS.filter(o => o.type === "channel");
 const ALL_ADVISORY  = ALL_OPTIONS.filter(o => o.type === "advisory");
-const ALL_EXTERNAL  = ALL_OPTIONS.filter(o => o.type === "external");
+// External list is dynamic — admins can add new Quick/Menu links at runtime
+// via Service Registry, so we recompute on each call instead of caching.
+const getExternalOptions = () => ALL_OPTIONS.filter(o => o.type === "external");
 
 const PRODUCT_OPTION_GROUPS = [
   { key:"payment",  label:"Payment Types",     icon:"💳", items: ALL_PAYMENTS  },
   { key:"feature",  label:"Product Features",  icon:"✨", items: ALL_FEATURES  },
 ];
-const OPTION_GROUPS = [
+const getOptionGroups = () => [
   { key:"payment",  label:"Payment Types",     icon:"💳", items: ALL_PAYMENTS  },
   { key:"feature",  label:"Product Features",  icon:"✨", items: ALL_FEATURES  },
   { key:"channel",  label:"Channels",          icon:"📡", items: ALL_CHANNELS  },
   { key:"advisory", label:"Advisory",          icon:"🤝", items: ALL_ADVISORY  },
-  { key:"external", label:"External",          icon:"🔗", items: ALL_EXTERNAL  },
+  { key:"external", label:"External",          icon:"🔗", items: getExternalOptions() },
 ];
 
 const INIT_MASTER = {
@@ -174,11 +185,29 @@ function CatalogProvider({ children }) {
   const [services,setS]=useState(INIT_SERVICES);
   const [customers,setC]=useState(INIT_CUSTOMERS);
   const [master,setM]=useState(INIT_MASTER);
+  // Version counter bumped whenever an external link is registered at runtime
+  // (we mutate ALL_OPTIONS in-place — this state forces a re-render of consumers).
+  const [,setExtVer]=useState(0);
   return (
     <Ctx.Provider value={{
       products,services,customers,master,
       updateMaster:useCallback(m=>setM(m),[]),
       bulkUpdateProducts:useCallback(ps=>setP(v=>v.map(x=>{const u=ps.find(p=>p.id===x.id);return u||x;})),[]),
+      addExternalOption:useCallback(({name,kind,classification})=>{
+        const trimmed=(name||"").trim();
+        if(!trimmed) return;
+        if(!ALL_OPTIONS.find(o=>o.id===trimmed)){
+          ALL_OPTIONS.push({id:trimmed,type:"external",kind});
+        }
+        setM(m=>({
+          ...m,
+          enabled: m.enabled.includes(trimmed)?m.enabled:[...m.enabled,trimmed],
+          addOnOnly: classification==="addon"
+            ? (m.addOnOnly.includes(trimmed)?m.addOnOnly:[...m.addOnOnly,trimmed])
+            : m.addOnOnly.filter(x=>x!==trimmed),
+        }));
+        setExtVer(v=>v+1);
+      },[]),
       addProduct:useCallback(p=>setP(v=>[...v,{...p,id:gid("prod")}]),[]),
       updateProduct:useCallback(p=>setP(v=>v.map(x=>x.id===p.id?p:x)),[]),
       deleteProduct:useCallback(id=>setP(v=>v.filter(x=>x.id!==id)),[]),
@@ -365,7 +394,7 @@ const GlobalOptionChecklist = ({ enabledOptions, onToggle }) => {
       <Group icon="✨" label="Product Features" items={ALL_FEATURES}/>
       <AddonGroup icon="📡" label="Channels" items={ALL_CHANNELS}/>
       <AddonGroup icon="🤝" label="Advisory" items={ALL_ADVISORY}/>
-      <AddonGroup icon="🔗" label="External" items={ALL_EXTERNAL}/>
+      <AddonGroup icon="🔗" label="External" items={getExternalOptions()}/>
     </div>
   );
 };
@@ -451,11 +480,25 @@ function CoverageSummaryPanel({ enabledOptions, products }) {
 }
 
 function MasterCataloguePage() {
-  const { master, updateMaster, products, customers, bulkUpdateProducts } = useCatalog();
+  const { master, updateMaster, products, customers, bulkUpdateProducts, addExternalOption } = useCatalog();
   const [lockOpen,setLockOpen]=useState(false);
   const [draft,setDraft]=useState(null);
   const [impactAlert,setImpactAlert]=useState(null);   // Standard→Add-on warning
   const [gainAlert,setGainAlert]=useState(null);       // Add-on→Standard info
+  // "+ Add External Link" dialog state — choose Quick/Menu first, then Offering,
+  // then provide a URL (Quick) or menu reference (Menu).
+  const [extOpen,setExtOpen]=useState(false);
+  const [extDraft,setExtDraft]=useState({kind:"quick",classification:"standard",quickUrl:"",menuRef:EXTERNAL_REF_API[0]});
+  const openExt=()=>{setExtDraft({kind:"quick",classification:"standard",quickUrl:"",menuRef:EXTERNAL_REF_API[0]});setExtOpen(true);};
+  const closeExt=()=>setExtOpen(false);
+  const saveExt=()=>{
+    const name=extDraft.kind==="quick"
+      ? extDraft.quickUrl.trim()
+      : `Menu: ${extDraft.menuRef}`;
+    if(!name) return;
+    addExternalOption({name,kind:extDraft.kind,classification:extDraft.classification});
+    setExtOpen(false);
+  };
   const openLock=()=>{setDraft({enabled:[...master.enabled],addOnOnly:[...master.addOnOnly]});setLockOpen(true);};
   const closeLock=()=>{setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
   const saveLock=()=>{updateMaster(draft);setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
@@ -541,9 +584,12 @@ function MasterCataloguePage() {
       </div>
       {affectedProds.length>0&&<div style={{padding:"10px 14px",background:"#FCEAEA",border:"1px solid #F5AAAA",borderRadius:8,marginBottom:18,fontSize:12,color:C.danger}}><strong>⚠️ Conflict:</strong> {affectedProds.length} product(s) violate current Master rules — {affectedProds.map(p=>p.name).join(", ")}.</div>}
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
-        {OPTION_GROUPS.map(({key,label,icon,items})=>(
+        {getOptionGroups().map(({key,label,icon,items})=>(
           <div key={key} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
-            <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:8}}>{icon} {label}</div>
+            <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+              <span style={{display:"inline-flex",alignItems:"center",gap:8}}>{icon} {label}</span>
+              {key==="external"&&<Btn variant="outline" size="sm" onClick={openExt}>+ Add</Btn>}
+            </div>
             <div style={{padding:14,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
               {items.map(o=>{const isEn=master.enabled.includes(o.id);const isAO=master.addOnOnly.includes(o.id);
                 const statusBg  = !isEn?"#F5F7FA":isAO?"#FFF3E0":"#E8F5E9";
@@ -618,7 +664,7 @@ function MasterCataloguePage() {
               <strong>Instructions:</strong> Toggle each option between <strong>Standard</strong> (available to all products) or <strong>🔒 Add-on</strong> (chargeable only). · {draft.addOnOnly.length} Add-on Only · {ALL_OPTIONS.length - draft.addOnOnly.length} Standard
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
-              {OPTION_GROUPS.map(({key,label,items})=>(
+              {getOptionGroups().map(({key,label,items})=>(
                 <div key={key}>
                   <div className="section-label" style={{marginBottom:8}}>{label}</div>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
@@ -627,6 +673,47 @@ function MasterCataloguePage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+      </Modal>
+      <Modal open={extOpen} onClose={closeExt} title="➕ Add External Link"
+        footer={<><Btn variant="outline" onClick={closeExt}>Cancel</Btn><Btn onClick={saveExt} disabled={extDraft.kind==="quick" && !extDraft.quickUrl.trim()}>Add to Registry</Btn></>}>
+        <div style={{padding:"10px 12px",background:"#F0EAFB",borderRadius:7,border:"1px solid #C9A8F5",fontSize:12,color:"#5A1FA0"}}>
+          <strong>External Link</strong> — registers a new Quick Link or Menu Link from the upstream reference catalogue. Once added it can be assigned to services like any other capability.
+        </div>
+        <div>
+          <label className="form-label">Type</label>
+          <div style={{display:"flex",borderRadius:7,overflow:"hidden",border:`1px solid ${C.border}`,width:"fit-content"}}>
+            <button onClick={()=>setExtDraft(d=>({...d,kind:"quick"}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="quick"?C.primary:"#fff",color:extDraft.kind==="quick"?"#fff":C.mutedText,border:"none",transition:"all .15s"}}>⚡ Quick Link</button>
+            <button onClick={()=>setExtDraft(d=>({...d,kind:"menu"}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="menu"?C.primary:"#fff",color:extDraft.kind==="menu"?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .15s"}}>📋 Menu Link</button>
+          </div>
+        </div>
+        <div>
+          <label className="form-label">Offering</label>
+          <div style={{display:"flex",borderRadius:7,overflow:"hidden",border:`1px solid ${C.border}`,width:"fit-content"}}>
+            <button onClick={()=>setExtDraft(d=>({...d,classification:"standard"}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.classification==="standard"?C.success:"#fff",color:extDraft.classification==="standard"?"#fff":C.mutedText,border:"none",transition:"all .15s"}}>✓ Standard</button>
+            <button onClick={()=>setExtDraft(d=>({...d,classification:"addon"}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.classification==="addon"?C.warning:"#fff",color:extDraft.classification==="addon"?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .15s"}}>🔒 Add-on Only</button>
+          </div>
+          <div style={{marginTop:6,fontSize:11,color:C.mutedText}}>
+            {extDraft.classification==="standard"
+              ? "Available to every product by default."
+              : "Only available when unlocked via a service subscription."}
+          </div>
+        </div>
+        {extDraft.kind==="quick" ? (
+          <div>
+            <label className="form-label">Quick Link URL</label>
+            <Inp value={extDraft.quickUrl} onChange={v=>setExtDraft(d=>({...d,quickUrl:v}))} placeholder="https://example.com/international-payment"/>
+          </div>
+        ) : (
+          <div>
+            <label className="form-label">Custom Menu</label>
+            <SelEl value={extDraft.menuRef} onChange={v=>setExtDraft(d=>({...d,menuRef:v}))}
+              options={EXTERNAL_REF_API.map(n=>({value:n,label:n}))}/>
           </div>
         )}
       </Modal>
@@ -729,7 +816,7 @@ function OverviewPage() {
                   const nonProdGroups=[
                     {key:"channel",label:"📡 Channels",items:ALL_CHANNELS},
                     {key:"advisory",label:"🤝 Advisory",items:ALL_ADVISORY},
-                    {key:"external",label:"🔗 External",items:ALL_EXTERNAL},
+                    {key:"external",label:"🔗 External",items:getExternalOptions()},
                   ].map(g=>({...g,opts:g.items.filter(o=>master.addOnOnly.includes(o.id))})).filter(g=>g.opts.length>0);
                   return(
                     <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -916,7 +1003,7 @@ const CustomerCapabilities = ({ product, custSvcs, master }) => {
   const nonProdGroups = [
     {key:"channel", label:"📡 Channels",  items: ALL_CHANNELS},
     {key:"advisory",label:"🤝 Advisory",  items: ALL_ADVISORY},
-    {key:"external", label:"🔗 External", items: ALL_EXTERNAL},
+    {key:"external", label:"🔗 External", items: getExternalOptions()},
   ].map(g => ({...g, opts: g.items.filter(o => master.addOnOnly.includes(o.id))}))
    .filter(g => g.opts.length > 0);
 
@@ -1073,7 +1160,7 @@ function ReadMePage() {
             {icon:"✨",label:"Product Features",count:ALL_FEATURES.length,desc:"Account features — statements, chequebooks, savings goals. Configured per product."},
             {icon:"📡",label:"Channels",count:ALL_CHANNELS.length,desc:"Access channels (Web, Mobile). Governed in Master; non-product add-ons unlocked via services."},
             {icon:"🤝",label:"Advisory",count:ALL_ADVISORY.length,desc:"Relationship Manager, 24/7 Support. Assigned at service level, not tied to a product."},
-            {icon:"🔗",label:"External",count:ALL_EXTERNAL.length,desc:"Quick Links, Menu Links. External integrations enabled through service subscriptions."},
+            {icon:"🔗",label:"External",count:getExternalOptions().length,desc:"Quick Links, Menu Links. External integrations enabled through service subscriptions."},
           ].map(({icon,label,count,desc})=>(
             <div key={label} style={{background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,padding:"12px 14px"}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
