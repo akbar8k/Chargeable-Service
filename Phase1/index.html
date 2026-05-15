@@ -129,7 +129,30 @@ const ALL_PAYMENTS  = ALL_OPTIONS.filter(o => o.type === "payment");
 const ALL_FEATURES  = ALL_OPTIONS.filter(o => o.type === "feature");
 const ALL_CHANNELS  = ALL_OPTIONS.filter(o => o.type === "channel");
 const ALL_ADVISORY  = ALL_OPTIONS.filter(o => o.type === "advisory");
-const ALL_EXTERNAL  = ALL_OPTIONS.filter(o => o.type === "external");
+const getExternalOptions = () => ALL_OPTIONS.filter(o => o.type === "external");
+
+const EXTERNAL_LINK_VALUES = [
+  { label:"Design Studio", slug:"design-studio" },
+  { label:"International Payment", slug:"international-payment" },
+  { label:"Premium Chequebook", slug:"premium-chequebook" },
+  { label:"Card Replacement", slug:"card-replacement" },
+  { label:"Travel Insurance", slug:"travel-insurance" },
+  { label:"Forex Exchange", slug:"forex-exchange" },
+];
+const EXTERNAL_CUSTOM_ACTION_VALUES = [
+  { label:"Payments", identifier:"payment-global" },
+  { label:"Products", identifier:"product-global" },
+  { label:"Loans", identifier:"loan-global" },
+  { label:"Term Deposits", identifier:"term-deposit-global" },
+  { label:"Cards", identifier:"card-global" },
+  { label:"Facilities", identifier:"facility-global" },
+];
+const LINK_PREVIEW_BASE = "http://backoffice.dbs.localhost";
+const getActionIdentifier = value => EXTERNAL_CUSTOM_ACTION_VALUES.find(o=>o.label===value)?.identifier || "";
+const getLinkPreviewUrl = value => {
+  const slug = EXTERNAL_LINK_VALUES.find(o=>o.label===value)?.slug || "";
+  return slug ? `${LINK_PREVIEW_BASE}/${slug}` : "";
+};
 
 const PRODUCT_OPTION_GROUPS = [
   { key:"payment",  label:"Payment Types",     icon:"💳", items: ALL_PAYMENTS  },
@@ -140,7 +163,7 @@ const OPTION_GROUPS = [
   { key:"feature",  label:"Product Features",  icon:"✨", items: ALL_FEATURES  },
   { key:"channel",  label:"Channels",          icon:"📡", items: ALL_CHANNELS  },
   { key:"advisory", label:"Advisory",          icon:"🤝", items: ALL_ADVISORY  },
-  { key:"external", label:"External",          icon:"🔗", items: ALL_EXTERNAL  },
+  { key:"external", label:"External",          icon:"🔗", items: getExternalOptions()  },
 ];
 
 const INIT_MASTER = {
@@ -174,11 +197,27 @@ function CatalogProvider({ children }) {
   const [services,setS]=useState(INIT_SERVICES);
   const [customers,setC]=useState(INIT_CUSTOMERS);
   const [master,setM]=useState(INIT_MASTER);
+  const [,setExtVer]=useState(0);
   return (
     <Ctx.Provider value={{
       products,services,customers,master,
       updateMaster:useCallback(m=>setM(m),[]),
       bulkUpdateProducts:useCallback(ps=>setP(v=>v.map(x=>{const u=ps.find(p=>p.id===x.id);return u||x;})),[]),
+      addExternalOption:useCallback(({label,kind,classification})=>{
+        const name=(label||"").trim();
+        if(!name) return;
+        if(!ALL_OPTIONS.find(o=>o.id===name)){
+          ALL_OPTIONS.push({id:name,type:"external",kind});
+        }
+        setM(m=>({
+          ...m,
+          enabled:m.enabled.includes(name)?m.enabled:[...m.enabled,name],
+          addOnOnly:classification==="addon"
+            ? (m.addOnOnly.includes(name)?m.addOnOnly:[...m.addOnOnly,name])
+            : m.addOnOnly.filter(x=>x!==name),
+        }));
+        setExtVer(v=>v+1);
+      },[]),
       addProduct:useCallback(p=>setP(v=>[...v,{...p,id:gid("prod")}]),[]),
       updateProduct:useCallback(p=>setP(v=>v.map(x=>x.id===p.id?p:x)),[]),
       deleteProduct:useCallback(id=>setP(v=>v.filter(x=>x.id!==id)),[]),
@@ -362,17 +401,31 @@ const GlobalOptionChecklist = ({ enabledOptions, onToggle }) => {
       <Group icon="✨" label="Product Features" items={ALL_FEATURES}/>
       <AddonGroup icon="📡" label="Channels" items={ALL_CHANNELS}/>
       <AddonGroup icon="🤝" label="Advisory" items={ALL_ADVISORY}/>
-      <AddonGroup icon="🔗" label="External" items={ALL_EXTERNAL}/>
+      <AddonGroup icon="🔗" label="External" items={getExternalOptions()}/>
     </div>
   );
 };
 
 function MasterCataloguePage() {
-  const { master, updateMaster, products, customers, bulkUpdateProducts } = useCatalog();
+  const { master, updateMaster, products, customers, bulkUpdateProducts, addExternalOption } = useCatalog();
   const [lockOpen,setLockOpen]=useState(false);
   const [draft,setDraft]=useState(null);
   const [impactAlert,setImpactAlert]=useState(null);
   const [gainAlert,setGainAlert]=useState(null);
+  const [extOpen,setExtOpen]=useState(false);
+  const [extDraft,setExtDraft]=useState({kind:"action",classification:"standard",value:EXTERNAL_CUSTOM_ACTION_VALUES[0].label});
+  const openExt=()=>{setExtDraft({kind:"action",classification:"standard",value:EXTERNAL_CUSTOM_ACTION_VALUES[0].label});setExtOpen(true);};
+  const closeExt=()=>setExtOpen(false);
+  const saveExt=()=>{
+    if(!extDraft.value) return;
+    const finalValue = extDraft.kind==="action"
+      ? getActionIdentifier(extDraft.value)
+      : getLinkPreviewUrl(extDraft.value);
+    addExternalOption({label:finalValue,kind:extDraft.kind,classification:extDraft.classification});
+    setExtOpen(false);
+  };
+  const extActionIdentifier = getActionIdentifier(extDraft.value);
+  const extLinkPreviewUrl = getLinkPreviewUrl(extDraft.value);
   const openLock=()=>{setDraft({enabled:[...master.enabled],addOnOnly:[...master.addOnOnly]});setLockOpen(true);};
   const closeLock=()=>{setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
   const saveLock=()=>{updateMaster(draft);setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
@@ -414,6 +467,7 @@ function MasterCataloguePage() {
   const disabledCount=ALL_OPTIONS.length-master.enabled.length;
   const addOnCount=master.addOnOnly.length;
   const affectedProds=products.filter(p=>p.standardOptions.some(id=>master.addOnOnly.includes(id))||p.standardOptions.some(id=>!master.enabled.includes(id))||p.chargeableOptions.some(id=>!master.enabled.includes(id)));
+  const externalOptionGroups=OPTION_GROUPS.map(g=>g.key==="external"?{...g,items:getExternalOptions()}:g);
   const MasterRow = ({ o, working }) => {
     const isAO=working.addOnOnly.includes(o.id);
     return (
@@ -455,9 +509,12 @@ function MasterCataloguePage() {
       </div>
       {affectedProds.length>0&&<div style={{padding:"10px 14px",background:"#FCEAEA",border:"1px solid #F5AAAA",borderRadius:8,marginBottom:18,fontSize:12,color:C.danger}}><strong>⚠️ Conflict:</strong> {affectedProds.length} product(s) violate current Master rules — {affectedProds.map(p=>p.name).join(", ")}.</div>}
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
-        {OPTION_GROUPS.map(({key,label,icon,items})=>(
+        {externalOptionGroups.map(({key,label,icon,items})=>(
           <div key={key} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
-            <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:8}}>{icon} {label}</div>
+            <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+              <span style={{display:"inline-flex",alignItems:"center",gap:8}}>{icon} {label}</span>
+              {key==="external"&&<Btn variant="outline" size="sm" onClick={openExt}>+ ADD</Btn>}
+            </div>
             <div style={{padding:14,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
               {items.map(o=>{const isEn=master.enabled.includes(o.id);const isAO=master.addOnOnly.includes(o.id);
                 const statusBg  = !isEn?"#F5F7FA":isAO?"#FFF3E0":"#E8F5E9";
@@ -531,7 +588,7 @@ function MasterCataloguePage() {
               <strong>Instructions:</strong> Toggle each option between <strong>Standard</strong> (available to all products) or <strong>🔒 Add-on</strong> (chargeable only). · {draft.addOnOnly.length} Add-on Only · {ALL_OPTIONS.length - draft.addOnOnly.length} Standard
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
-              {OPTION_GROUPS.map(({key,label,items})=>(
+              {externalOptionGroups.map(({key,label,items})=>(
                 <div key={key}>
                   <div className="section-label" style={{marginBottom:8}}>{label}</div>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
@@ -540,6 +597,51 @@ function MasterCataloguePage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+      </Modal>
+      <Modal open={extOpen} onClose={closeExt} title="➕ Add External Option"
+        footer={<><Btn variant="outline" onClick={closeExt}>Cancel</Btn><Btn onClick={saveExt}>Save</Btn></>}>
+        <div style={{padding:"10px 12px",background:"#F0EAFB",borderRadius:7,border:"1px solid #C9A8F5",fontSize:12,color:"#5A1FA0"}}>
+          <strong>External</strong> — choose type first, then offering, then select a value from dropdown.
+        </div>
+        <div>
+          <label className="form-label">Type</label>
+          <div style={{display:"flex",borderRadius:7,overflow:"hidden",border:`1px solid ${C.border}`,width:"fit-content"}}>
+            <button onClick={()=>setExtDraft(d=>({...d,kind:"action",value:EXTERNAL_CUSTOM_ACTION_VALUES[0].label}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="action"?C.primary:"#fff",color:extDraft.kind==="action"?"#fff":C.mutedText,border:"none",transition:"all .15s"}}>Custom Action</button>
+            <button onClick={()=>setExtDraft(d=>({...d,kind:"link",value:EXTERNAL_LINK_VALUES[0].label}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="link"?C.primary:"#fff",color:extDraft.kind==="link"?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .15s"}}>Link</button>
+          </div>
+        </div>
+        <div>
+          <label className="form-label">Offering</label>
+          <div style={{display:"flex",borderRadius:7,overflow:"hidden",border:`1px solid ${C.border}`,width:"fit-content"}}>
+            <button onClick={()=>setExtDraft(d=>({...d,classification:"standard"}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.classification==="standard"?C.success:"#fff",color:extDraft.classification==="standard"?"#fff":C.mutedText,border:"none",transition:"all .15s"}}>✓ Standard</button>
+            <button onClick={()=>setExtDraft(d=>({...d,classification:"addon"}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.classification==="addon"?C.warning:"#fff",color:extDraft.classification==="addon"?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .15s"}}>🔒 Add-on</button>
+          </div>
+        </div>
+        <div>
+          <label className="form-label">Value</label>
+          <SelEl
+            value={extDraft.value}
+            onChange={v=>setExtDraft(d=>({...d,value:v}))}
+            options={(extDraft.kind==="action"?EXTERNAL_CUSTOM_ACTION_VALUES:EXTERNAL_LINK_VALUES).map(v=>({value:v.label,label:v.label}))}
+          />
+        </div>
+        {extDraft.kind==="action"&&(
+          <div>
+            <label className="form-label">Custom action identifier</label>
+            <input value={extActionIdentifier} readOnly className="form-input mono" />
+            <div style={{marginTop:6,fontSize:11,color:C.mutedText}}>Auto-generated identifier with lowercase letters and hyphen format.</div>
+          </div>
+        )}
+        {extDraft.kind==="link"&&(
+          <div>
+            <label className="form-label">Preview URL</label>
+            <input value={extLinkPreviewUrl} readOnly className="form-input mono" />
           </div>
         )}
       </Modal>
@@ -868,7 +970,7 @@ const NonProductCapSection = ({ custSvcs, master }) => {
   const groups = [
     {key:"channel", label:"📡 Channels",  items: ALL_CHANNELS},
     {key:"advisory",label:"🤝 Advisory",  items: ALL_ADVISORY},
-    {key:"external", label:"🔗 External", items: ALL_EXTERNAL},
+    {key:"external", label:"🔗 External", items: getExternalOptions()},
   ].map(g => ({...g, opts: g.items.filter(o => master.addOnOnly.includes(o.id))}))
    .filter(g => g.opts.length > 0);
 

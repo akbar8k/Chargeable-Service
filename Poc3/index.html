@@ -111,13 +111,33 @@ body{background:var(--bg);color:var(--fg);min-height:100vh}
 const { useState, useCallback, createContext, useContext } = React;
 
 // Simulated reference catalogue served by an external API — values shown in the
-// Service Registry "Add External Link" dialog so admins can register Quick / Menu
-// links sourced from upstream (e.g. International Payment, Premium Chequebook).
-const EXTERNAL_REF_API = [
-  "International Payment","Premium Chequebook","Travel Insurance",
-  "Investment Advisory","Crypto Wallet","Wealth Dashboard",
-  "Loyalty Rewards","Trade Finance","Forex Exchange",
+// Service Registry external add flow for either custom actions or links.
+const EXTERNAL_LINK_VALUES = [
+  { label:"Design Studio", slug:"design-studio" },
+  { label:"International Payment", slug:"international-payment" },
+  { label:"Premium Chequebook", slug:"premium-chequebook" },
+  { label:"Travel Insurance", slug:"travel-insurance" },
+  { label:"Investment Advisory", slug:"investment-advisory" },
+  { label:"Crypto Wallet", slug:"crypto-wallet" },
+  { label:"Wealth Dashboard", slug:"wealth-dashboard" },
+  { label:"Loyalty Rewards", slug:"loyalty-rewards" },
+  { label:"Trade Finance", slug:"trade-finance" },
+  { label:"Forex Exchange", slug:"forex-exchange" },
 ];
+const EXTERNAL_CUSTOM_ACTION_VALUES = [
+  { label:"Payments", identifier:"payment-global" },
+  { label:"Products", identifier:"product-global" },
+  { label:"Loans", identifier:"loan-global" },
+  { label:"Term Deposits", identifier:"term-deposit-global" },
+  { label:"Cards", identifier:"card-global" },
+  { label:"Facilities", identifier:"facility-global" },
+];
+const LINK_PREVIEW_BASE = "http://backoffice.dbs.localhost";
+const getActionIdentifier = value => EXTERNAL_CUSTOM_ACTION_VALUES.find(o=>o.label===value)?.identifier || "";
+const getLinkPreviewUrl = value => {
+  const slug = EXTERNAL_LINK_VALUES.find(o=>o.label===value)?.slug || "";
+  return slug ? `${LINK_PREVIEW_BASE}/${slug}` : "";
+};
 
 const ALL_OPTIONS = [
   { id:"SEPA EUR TRANSFER",type:"payment" },{ id:"P2P Transfer ETB",type:"payment" },
@@ -138,7 +158,7 @@ const ALL_PAYMENTS  = ALL_OPTIONS.filter(o => o.type === "payment");
 const ALL_FEATURES  = ALL_OPTIONS.filter(o => o.type === "feature");
 const ALL_CHANNELS  = ALL_OPTIONS.filter(o => o.type === "channel");
 const ALL_ADVISORY  = ALL_OPTIONS.filter(o => o.type === "advisory");
-// External list is dynamic — admins can add new Quick/Menu links at runtime
+// External list is dynamic — admins can add new actions or links at runtime
 // via Service Registry, so we recompute on each call instead of caching.
 const getExternalOptions = () => ALL_OPTIONS.filter(o => o.type === "external");
 
@@ -485,20 +505,22 @@ function MasterCataloguePage() {
   const [draft,setDraft]=useState(null);
   const [impactAlert,setImpactAlert]=useState(null);   // Standard→Add-on warning
   const [gainAlert,setGainAlert]=useState(null);       // Add-on→Standard info
-  // "+ Add External Link" dialog state — choose Quick/Menu first, then Offering,
-  // then provide a URL (Quick) or menu reference (Menu).
+  // External add dialog state — choose action/link first, then Offering,
+  // then select a dropdown value that generates identifier or preview URL.
   const [extOpen,setExtOpen]=useState(false);
-  const [extDraft,setExtDraft]=useState({kind:"quick",classification:"standard",quickUrl:"",menuRef:EXTERNAL_REF_API[0]});
-  const openExt=()=>{setExtDraft({kind:"quick",classification:"standard",quickUrl:"",menuRef:EXTERNAL_REF_API[0]});setExtOpen(true);};
+  const [extDraft,setExtDraft]=useState({kind:"action",classification:"standard",value:EXTERNAL_CUSTOM_ACTION_VALUES[0].label});
+  const openExt=()=>{setExtDraft({kind:"action",classification:"standard",value:EXTERNAL_CUSTOM_ACTION_VALUES[0].label});setExtOpen(true);};
   const closeExt=()=>setExtOpen(false);
   const saveExt=()=>{
-    const name=extDraft.kind==="quick"
-      ? extDraft.quickUrl.trim()
-      : `Menu: ${extDraft.menuRef}`;
-    if(!name) return;
+    if(!extDraft.value) return;
+    const name=extDraft.kind==="action"
+      ? getActionIdentifier(extDraft.value)
+      : getLinkPreviewUrl(extDraft.value);
     addExternalOption({name,kind:extDraft.kind,classification:extDraft.classification});
     setExtOpen(false);
   };
+  const extActionIdentifier=getActionIdentifier(extDraft.value);
+  const extLinkPreviewUrl=getLinkPreviewUrl(extDraft.value);
   const openLock=()=>{setDraft({enabled:[...master.enabled],addOnOnly:[...master.addOnOnly]});setLockOpen(true);};
   const closeLock=()=>{setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
   const saveLock=()=>{updateMaster(draft);setLockOpen(false);setDraft(null);setImpactAlert(null);setGainAlert(null);};
@@ -588,7 +610,7 @@ function MasterCataloguePage() {
           <div key={key} style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`}}>
             <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
               <span style={{display:"inline-flex",alignItems:"center",gap:8}}>{icon} {label}</span>
-              {key==="external"&&<Btn variant="outline" size="sm" onClick={openExt}>+ Add</Btn>}
+              {key==="external"&&<Btn variant="outline" size="sm" onClick={openExt}>+ ADD</Btn>}
             </div>
             <div style={{padding:14,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
               {items.map(o=>{const isEn=master.enabled.includes(o.id);const isAO=master.addOnOnly.includes(o.id);
@@ -676,18 +698,18 @@ function MasterCataloguePage() {
           </div>
         )}
       </Modal>
-      <Modal open={extOpen} onClose={closeExt} title="➕ Add External Link"
-        footer={<><Btn variant="outline" onClick={closeExt}>Cancel</Btn><Btn onClick={saveExt} disabled={extDraft.kind==="quick" && !extDraft.quickUrl.trim()}>Add to Registry</Btn></>}>
+      <Modal open={extOpen} onClose={closeExt} title="➕ Add External Option"
+        footer={<><Btn variant="outline" onClick={closeExt}>Cancel</Btn><Btn onClick={saveExt}>Save</Btn></>}>
         <div style={{padding:"10px 12px",background:"#F0EAFB",borderRadius:7,border:"1px solid #C9A8F5",fontSize:12,color:"#5A1FA0"}}>
-          <strong>External Link</strong> — registers a new Quick Link or Menu Link from the upstream reference catalogue. Once added it can be assigned to services like any other capability.
+          <strong>External</strong> — choose type first, then offering, then select a value from dropdown.
         </div>
         <div>
           <label className="form-label">Type</label>
           <div style={{display:"flex",borderRadius:7,overflow:"hidden",border:`1px solid ${C.border}`,width:"fit-content"}}>
-            <button onClick={()=>setExtDraft(d=>({...d,kind:"quick"}))}
-              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="quick"?C.primary:"#fff",color:extDraft.kind==="quick"?"#fff":C.mutedText,border:"none",transition:"all .15s"}}>⚡ Quick Link</button>
-            <button onClick={()=>setExtDraft(d=>({...d,kind:"menu"}))}
-              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="menu"?C.primary:"#fff",color:extDraft.kind==="menu"?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .15s"}}>📋 Menu Link</button>
+            <button onClick={()=>setExtDraft(d=>({...d,kind:"action",value:EXTERNAL_CUSTOM_ACTION_VALUES[0].label}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="action"?C.primary:"#fff",color:extDraft.kind==="action"?"#fff":C.mutedText,border:"none",transition:"all .15s"}}>Custom Action</button>
+            <button onClick={()=>setExtDraft(d=>({...d,kind:"link",value:EXTERNAL_LINK_VALUES[0].label}))}
+              style={{padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer",background:extDraft.kind==="link"?C.primary:"#fff",color:extDraft.kind==="link"?"#fff":C.mutedText,border:"none",borderLeft:`1px solid ${C.border}`,transition:"all .15s"}}>Link</button>
           </div>
         </div>
         <div>
@@ -704,16 +726,24 @@ function MasterCataloguePage() {
               : "Only available when unlocked via a service subscription."}
           </div>
         </div>
-        {extDraft.kind==="quick" ? (
+        <div>
+          <label className="form-label">Value</label>
+          <SelEl
+            value={extDraft.value}
+            onChange={v=>setExtDraft(d=>({...d,value:v}))}
+            options={(extDraft.kind==="action"?EXTERNAL_CUSTOM_ACTION_VALUES:EXTERNAL_LINK_VALUES).map(v=>({value:v.label,label:v.label}))}
+          />
+        </div>
+        {extDraft.kind==="action" ? (
           <div>
-            <label className="form-label">Quick Link URL</label>
-            <Inp value={extDraft.quickUrl} onChange={v=>setExtDraft(d=>({...d,quickUrl:v}))} placeholder="https://example.com/international-payment"/>
+            <label className="form-label">Custom action identifier</label>
+            <input value={extActionIdentifier} readOnly className="form-input mono" />
+            <div style={{marginTop:6,fontSize:11,color:C.mutedText}}>Auto-generated identifier with lowercase letters and hyphen format.</div>
           </div>
         ) : (
           <div>
-            <label className="form-label">Custom Menu</label>
-            <SelEl value={extDraft.menuRef} onChange={v=>setExtDraft(d=>({...d,menuRef:v}))}
-              options={EXTERNAL_REF_API.map(n=>({value:n,label:n}))}/>
+            <label className="form-label">Preview URL</label>
+            <input value={extLinkPreviewUrl} readOnly className="form-input mono" />
           </div>
         )}
       </Modal>
@@ -1148,7 +1178,7 @@ function ReadMePage() {
 
       {/* Purpose */}
       <Section icon="🎯" title="Purpose & Problem Statement">
-        <p style={{marginBottom:10}}>Digital banking products offer different capabilities — some <strong>Standard</strong> (included by default) and others <strong>Add-on</strong> (unlocked via a subscribed service). Beyond product-linked capabilities, customers can also access <strong>non-product capabilities</strong> such as Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) — all governed at the Service Registry level.</p>
+        <p style={{marginBottom:10}}>Digital banking products offer different capabilities — some <strong>Standard</strong> (included by default) and others <strong>Add-on</strong> (unlocked via a subscribed service). Beyond product-linked capabilities, customers can also access <strong>non-product capabilities</strong> such as Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External actions and links — all governed at the Service Registry level.</p>
         <p>This POC introduces a <strong>four-layer configuration model</strong> with role-based access, making explicit what is constrained at the top, what is configurable per product, what services unlock, and how a customer's full capability set is resolved end-to-end.</p>
       </Section>
 
@@ -1160,7 +1190,7 @@ function ReadMePage() {
             {icon:"✨",label:"Product Features",count:ALL_FEATURES.length,desc:"Account features — statements, chequebooks, savings goals. Configured per product."},
             {icon:"📡",label:"Channels",count:ALL_CHANNELS.length,desc:"Access channels (Web, Mobile). Governed in Master; non-product add-ons unlocked via services."},
             {icon:"🤝",label:"Advisory",count:ALL_ADVISORY.length,desc:"Relationship Manager, 24/7 Support. Assigned at service level, not tied to a product."},
-            {icon:"🔗",label:"External",count:getExternalOptions().length,desc:"Quick Links, Menu Links. External integrations enabled through service subscriptions."},
+            {icon:"🔗",label:"External",count:getExternalOptions().length,desc:"Custom actions and links. External integrations enabled through service subscriptions."},
           ].map(({icon,label,count,desc})=>(
             <div key={label} style={{background:"#fff",borderRadius:8,border:`1px solid ${C.border}`,padding:"12px 14px"}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
@@ -1209,7 +1239,7 @@ function ReadMePage() {
             {icon:"🔒",title:"Standard vs Add-on toggle",text:"In the Service Registry, every option is toggled between Standard or Add-on Only using a segmented control. Add-on Only options can never appear as Standard on any product — they can only be unlocked via a service."},
             {icon:"📦",title:"Product-scoped capabilities",text:"Payments and Features are product-scoped — each product independently defines which are Standard and which are Add-on. Channels, Advisory, and External are not product-scoped."},
             {icon:"🔧",title:"Service add-on unlocking",text:"Services show only Add-on options (amber theme). Subscribing a service unlocks those options for a customer — but only if the option is also chargeable on the customer's product (for Payments/Features) or non-product (for Channels/Advisory/External)."},
-            {icon:"📡",title:"Non-product capabilities",text:"Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External (Quick Links, Menu Links) are governed globally in Service Registry and unlocked per-customer via service subscriptions — independent of their product."},
+            {icon:"📡",title:"Non-product capabilities",text:"Channels (Web, Mobile), Advisory (Relationship Manager, 24/7 Support), and External actions and links are governed globally in Service Registry and unlocked per-customer via service subscriptions — independent of their product."},
             {icon:"👥",title:"Role-based access",text:"Four personas: Admin (full access), Product Manager (products only), Service Manager (services + coverage), Customer Ops (customer assignment). Each sees only their relevant sections."},
             {icon:"🔁",title:"Resolved capabilities",text:"A customer's full capability set is resolved dynamically — Standard options always on; product Add-ons activate via subscribed services; non-product capabilities (Channel/Advisory/External) activate if any subscribed service includes them."},
           ].map(({icon,title,text})=>(
